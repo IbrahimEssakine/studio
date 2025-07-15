@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/context/cart-context";
 import { OrderProvider } from "@/context/order-context";
 import { AppointmentProvider } from "@/context/appointment-context";
+import { UserProvider } from "@/context/user-context";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -47,18 +48,20 @@ export default function RootLayout({
           playfairDisplay.variable
         )}
       >
-        <OrderProvider>
-          <AppointmentProvider>
-            <CartProvider>
-                <div className="relative flex min-h-dvh flex-col bg-background">
-                <Header />
-                <main className="flex-1">{children}</main>
-                <Footer />
-                </div>
-                <Toaster />
-            </CartProvider>
-          </AppointmentProvider>
-        </OrderProvider>
+        <UserProvider>
+            <OrderProvider>
+            <AppointmentProvider>
+                <CartProvider>
+                    <div className="relative flex min-h-dvh flex-col bg-background">
+                    <Header />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                    </div>
+                    <Toaster />
+                </CartProvider>
+            </AppointmentProvider>
+            </OrderProvider>
+        </UserProvider>
       </body>
     </html>
   );

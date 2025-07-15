@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser } from "@/context/user-context";
 
 const signupSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
@@ -37,6 +37,8 @@ const signupSchema = z.object({
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { addUser } = useUser();
+
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -52,12 +54,20 @@ export default function SignupPage() {
   });
 
   function onSubmit(values: z.infer<typeof signupSchema>) {
-    console.log("New user created:", values);
-    toast({
-        title: "Account Created!",
-        description: "You have successfully signed up. Please log in.",
-    });
-    router.push("/login");
+    const result = addUser(values);
+    if(result.success) {
+        toast({
+            title: "Account Created!",
+            description: "You have successfully signed up. Please log in.",
+        });
+        router.push("/login");
+    } else {
+        toast({
+            title: "Signup Failed",
+            description: result.message,
+            variant: "destructive"
+        });
+    }
   }
 
   return (

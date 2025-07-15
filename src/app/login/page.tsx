@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/context/user-context";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -29,6 +29,8 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useUser();
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -38,19 +40,24 @@ export default function LoginPage() {
   });
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    if (values.email === "purga2ryx@gmail.com" && values.password === "admin123") {
+    const loginResult = login(values.email, values.password);
+
+    if (loginResult.success) {
         toast({
-            title: "Admin Login Successful",
-            description: "Redirecting to dashboard...",
+            title: loginResult.isAdmin ? "Admin Login Successful" : "Login Successful",
+            description: loginResult.isAdmin ? "Redirecting to dashboard..." : "Welcome back!",
         });
-        router.push("/dashboard");
+        if (loginResult.isAdmin) {
+            router.push("/dashboard");
+        } else {
+            router.push("/"); // Redirect regular users to homepage
+        }
     } else {
-        console.log(values);
-        toast({
-            title: "Login Successful",
-            description: "Welcome back!",
+         toast({
+            title: "Login Failed",
+            description: loginResult.message,
+            variant: "destructive"
         });
-        form.reset();
     }
   }
 

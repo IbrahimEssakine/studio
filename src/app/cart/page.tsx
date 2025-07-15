@@ -72,7 +72,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <div className="flex flex-col justify-between items-end">
-                  <p className="font-bold text-lg">DH{(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-bold text-lg">{(item.price * item.quantity).toFixed(2)} DH</p>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -95,16 +95,16 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>DH{subtotal.toFixed(2)}</span>
+                <span>{subtotal.toFixed(2)} DH</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>DH{shipping.toFixed(2)}</span>
+                <span>{shipping.toFixed(2)} DH</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>DH{total.toFixed(2)}</span>
+                <span>{total.toFixed(2)} DH</span>
               </div>
             </CardContent>
             <CardFooter>

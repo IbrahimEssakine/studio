@@ -49,7 +49,7 @@ export function ProductCard({ product, className, ...props }: ProductCardProps) 
             <h3 className="font-semibold text-lg leading-tight">
               <Link href={`/products/${product.id}`}>{product.name}</Link>
             </h3>
-            <p className="font-bold text-lg text-primary">DH{product.price}</p>
+            <p className="font-bold text-lg text-primary">{product.price} DH</p>
         </div>
         <div className="flex items-center mt-2 gap-2">
           {renderStars(product.rating)}

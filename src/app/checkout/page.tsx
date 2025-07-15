@@ -22,6 +22,8 @@ import Image from "next/image";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { useOrders } from "@/context/order-context";
+import { useUser } from "@/context/user-context";
+import { useEffect } from "react";
 
 const checkoutSchema = z.object({
   // Shipping info
@@ -36,6 +38,7 @@ const checkoutSchema = z.object({
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -54,6 +57,20 @@ export default function CheckoutPage() {
       zip: "",
     },
   });
+
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
+        city: user.city,
+        zip: user.zip,
+      });
+    }
+  }, [user, form]);
+
 
   function onSubmit(values: z.infer<typeof checkoutSchema>) {
     const newOrder = {
@@ -160,7 +177,7 @@ export default function CheckoutPage() {
                       <p className="font-semibold">{item.name}</p>
                       <p className="text-sm text-muted-foreground">{item.color}, {item.lensType}</p>
                     </div>
-                    <p className="font-medium">DH{(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium">{(item.price * item.quantity).toFixed(2)} DH</p>
                   </div>
                 ))}
               </div>
@@ -168,16 +185,16 @@ export default function CheckoutPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>DH{subtotal.toFixed(2)}</span>
+                  <span>{subtotal.toFixed(2)} DH</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span>DH{shipping.toFixed(2)}</span>
+                  <span>{shipping.toFixed(2)} DH</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>DH{total.toFixed(2)}</span>
+                  <span>{total.toFixed(2)} DH</span>
                 </div>
               </div>
             </CardContent>

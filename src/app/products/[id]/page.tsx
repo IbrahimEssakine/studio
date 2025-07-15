@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from "react";
 import Image from "next/image";
@@ -29,8 +28,8 @@ const productData: Product = {
 
 const lensTypes = [
   { name: "Standard (Free)", price: 0 },
-  { name: "Blue-Light Filtering (+290DH)", price: 290 },
-  { name: "Transitions® (+990DH)", price: 990 },
+  { name: "Blue-Light Filtering (+290 DH)", price: 290 },
+  { name: "Transitions® (+990 DH)", price: 990 },
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
@@ -187,7 +186,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           <Card className="bg-muted/50">
             <CardContent className="p-6">
                 <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold font-headline">Total: DH{totalPrice.toFixed(2)}</span>
+                    <span className="text-2xl font-bold font-headline">Total: {totalPrice.toFixed(2)} DH</span>
                     <Button size="lg" onClick={handleAddToCart}>Add to Cart</Button>
                 </div>
             </CardContent>

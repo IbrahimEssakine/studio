@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -36,4 +35,18 @@ export interface Appointment {
   date: Date;
   time: string;
   status: "Confirmed" | "Pending" | "Cancelled";
+}
+
+export interface User {
+    id: string;
+    email: string;
+    password?: string; // Should not be stored long-term
+    firstName: string;
+    lastName: string;
+    phone: string;
+    address: string;
+    city: string;
+    zip: string;
+    gender: string;
+    role: 'customer' | 'admin';
 }

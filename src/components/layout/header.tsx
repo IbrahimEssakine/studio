@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Glasses, Menu, User, ShoppingCart } from "lucide-react";
+import { Glasses, Menu, User, ShoppingCart, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,19 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useCart } from "@/context/cart-context";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/context/user-context";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -25,6 +34,7 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const { cart } = useCart();
+  const { user, logout } = useUser();
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -93,6 +103,9 @@ export function Header() {
                 {link.label}
               </NavLink>
             ))}
+             {user?.role === 'admin' && (
+              <NavLink href="/dashboard">Dashboard</NavLink>
+            )}
           </nav>
         </div>
 
@@ -119,6 +132,9 @@ export function Header() {
                       {link.label}
                     </MobileNavLink>
                   ))}
+                   {user?.role === 'admin' && (
+                    <MobileNavLink href="/dashboard">Dashboard</MobileNavLink>
+                  )}
                 </div>
               </div>
             </SheetContent>
@@ -127,12 +143,33 @@ export function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center">
-            <Button asChild variant="ghost" size="icon">
-              <Link href="/login">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Login / Dashboard</span>
-              </Link>
-            </Button>
+            { isClient && user ? (
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" size="icon">
+                            <User className="h-5 w-5" />
+                            <span className="sr-only">User Menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/login">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuItem onClick={logout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                 </DropdownMenu>
+            ) : (
+                <Button asChild variant="ghost" size="icon">
+                    <Link href="/login">
+                        <User className="h-5 w-5" />
+                        <span className="sr-only">Login</span>
+                    </Link>
+                </Button>
+            )}
+            
             <Button asChild variant="ghost" size="icon" className="relative">
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />

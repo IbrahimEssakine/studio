@@ -61,8 +61,8 @@ export default function ShopPage() {
             onValueChange={(value) => setPriceRange(value)}
           />
           <div className="flex justify-between text-sm text-muted-foreground mt-2">
-            <span>DH{priceRange[0]}</span>
-            <span>DH{priceRange[1]}</span>
+            <span>{priceRange[0]} DH</span>
+            <span>{priceRange[1]} DH</span>
           </div>
         </div>
         <div>
