@@ -53,8 +53,9 @@ export default function ProductDetailPage() {
     return <div>Loading...</div>;
   }
 
-  const totalPrice = product.price + (prescriptionOption !== 'none' ? selectedLens.price : 0);
-  const lensType = prescriptionOption !== 'none' ? selectedLens.name : 'Frames Only';
+  const totalPrice = product.price + (prescriptionOption === 'manual' || prescriptionOption === 'upload' ? selectedLens.price : 0);
+  const lensType = prescriptionOption === 'manual' || prescriptionOption === 'upload' ? selectedLens.name : 'Frames Only';
+  const showLensSelector = prescriptionOption === 'manual' || prescriptionOption === 'upload';
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -127,6 +128,24 @@ export default function ProductDetailPage() {
               ))}
             </RadioGroup>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="lens-type" className="font-semibold text-lg">Lens Type</Label>
+            <Select 
+              onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}
+              disabled={!showLensSelector}
+            >
+              <SelectTrigger id="lens-type" className="w-full">
+                <SelectValue placeholder="Select lens type" />
+              </SelectTrigger>
+              <SelectContent>
+                {lensTypes.map(lens => (
+                  <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+             {!showLensSelector && <p className="text-xs text-muted-foreground">Select a prescription option to enable lens types.</p>}
+          </div>
 
           <div>
             <h3 className="font-semibold text-lg mb-2">Prescription Options</h3>
@@ -140,19 +159,6 @@ export default function ProductDetailPage() {
                <TabsContent value="manual" className="pt-4">
                 <Card>
                   <CardContent className="pt-6 space-y-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="lens-type" className="font-semibold text-md">Lens Type</Label>
-                        <Select onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}>
-                          <SelectTrigger id="lens-type" className="w-full">
-                            <SelectValue placeholder="Select lens type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {lensTypes.map(lens => (
-                              <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="od">OD (Right Eye)</Label>
@@ -170,19 +176,6 @@ export default function ProductDetailPage() {
               <TabsContent value="upload" className="pt-4">
                 <Card>
                   <CardContent className="pt-6 space-y-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="lens-type-upload" className="font-semibold text-md">Lens Type</Label>
-                        <Select onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}>
-                          <SelectTrigger id="lens-type-upload" className="w-full">
-                            <SelectValue placeholder="Select lens type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {lensTypes.map(lens => (
-                              <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     <div className="relative">
                       <Button asChild variant="outline" className="w-full">
                         <Label htmlFor="prescription-upload" className="cursor-pointer flex items-center justify-center gap-2">
@@ -240,5 +233,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-    
