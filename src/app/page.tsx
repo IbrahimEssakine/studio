@@ -45,11 +45,11 @@ export default function Home() {
   ];
 
   const collections = [
-      { icon: <Contact className="h-8 w-8 text-primary" />, title: "Lentilles de Contact", count: contactLensesCount },
-      { icon: <Glasses className="h-8 w-8 text-primary" />, title: "Solaires Homme", count: sunglassesHommeCount },
-      { icon: <Briefcase className="h-8 w-8 text-primary" />, title: "Clip 2 en 1", count: clip2in1Count },
-      { icon: <PersonStanding className="h-8 w-8 text-primary" />, title: "Lunettes Femme", count: lunettesFemmeCount },
-      { icon: <PersonStanding className="h-8 w-8 text-primary" />, title: "Lunettes Homme", count: lunettesHommeCount },
+      { icon: <Contact className="h-8 w-8 text-white" />, title: "Lentilles de Contact", count: contactLensesCount },
+      { icon: <Glasses className="h-8 w-8 text-white" />, title: "Solaires Homme", count: sunglassesHommeCount },
+      { icon: <Briefcase className="h-8 w-8 text-white" />, title: "Clip 2 en 1", count: clip2in1Count },
+      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Femme", count: lunettesFemmeCount },
+      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Homme", count: lunettesHommeCount },
   ];
 
   return (
@@ -106,17 +106,19 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold text-center text-foreground">
             Nos Collections
           </h2>
-           <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+           <div className="mt-12 flex space-x-4 md:space-x-6 overflow-x-auto pb-4">
                 {collections.map((collection, index) => (
-                    <Card key={index} className="hover:shadow-lg transition-shadow group relative overflow-hidden h-48 flex flex-col justify-end">
-                        <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
-                            <div className="text-white">
-                                {collection.icon}
-                                <p className="font-semibold mt-2">{collection.title}</p>
-                                <p className="text-sm">({collection.count} articles)</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <div key={index} className="flex-shrink-0 w-4/5 sm:w-1/3 lg:w-1/5">
+                        <Card className="hover:shadow-lg transition-shadow group relative overflow-hidden h-64 flex flex-col justify-end">
+                            <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/60 via-black/40 to-transparent flex flex-col justify-end h-full">
+                                <div className="text-white">
+                                    {collection.icon}
+                                    <p className="font-semibold text-lg mt-2">{collection.title}</p>
+                                    <p className="text-sm">({collection.count} articles)</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 ))}
             </div>
         </div>
