@@ -15,10 +15,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 const checkoutSchema = z.object({
   // Shipping info
@@ -29,12 +31,6 @@ const checkoutSchema = z.object({
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   zip: z.string().min(5, "A valid ZIP code is required"),
-
-  // Payment info
-  cardName: z.string().min(1, "Name on card is required"),
-  cardNumber: z.string().regex(/^\d{16}$/, "Card number must be 16 digits"),
-  expDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Format must be MM/YY"),
-  cvc: z.string().regex(/^\d{3,4}$/, "CVC must be 3 or 4 digits"),
 });
 
 export default function CheckoutPage() {
@@ -56,10 +52,6 @@ export default function CheckoutPage() {
       city: "",
       state: "",
       zip: "",
-      cardName: "",
-      cardNumber: "",
-      expDate: "",
-      cvc: "",
     },
   });
 
@@ -130,27 +122,15 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader><CardTitle className="font-headline">Payment Details</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <FormField control={form.control} name="cardName" render={({ field }) => (
-                  <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="cardNumber" render={({ field }) => (
-                  <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="•••• •••• •••• ••••" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="expDate" render={({ field }) => (
-                    <FormItem><FormLabel>Expiration Date</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                  <FormField control={form.control} name="cvc" render={({ field }) => (
-                    <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
-                  )} />
-                </div>
-              </CardContent>
-            </Card>
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Payment on Delivery</AlertTitle>
+              <AlertDescription>
+                You'll pay with cash or card when your order arrives.
+              </AlertDescription>
+            </Alert>
 
-            <Button type="submit" size="lg" className="w-full">Pay ${total.toFixed(2)}</Button>
+            <Button type="submit" size="lg" className="w-full">Place Order</Button>
           </form>
         </Form>
 
