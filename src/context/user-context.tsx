@@ -41,6 +41,7 @@ interface UserContextType {
   logout: () => void;
   addUser: (userData: Omit<User, 'id' | 'role'>) => { success: boolean, message: string };
   updateUser: (userId: string, updatedData: Partial<User>) => { success: boolean, message: string };
+  deleteUser: (userId: string) => { success: boolean, message: string };
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -161,8 +162,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, message: "User not found." };
   }
 
+  const deleteUser = (userId: string): { success: boolean, message: string } => {
+    const userToDelete = users.find(u => u.id === userId);
+    if (!userToDelete) {
+        return { success: false, message: "User not found." };
+    }
+
+    if(userToDelete.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1) {
+        return { success: false, message: "Cannot delete the only admin."}
+    }
+
+    setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+    return { success: true, message: "User deleted successfully." };
+  }
+
   return (
-    <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser }}>
+    <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser, deleteUser }}>
       {children}
     </UserContext.Provider>
   );

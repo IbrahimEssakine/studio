@@ -31,9 +31,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Order, Appointment } from "@/lib/types";
+import type { Order, Appointment, Product, User } from "@/lib/types";
 import { useOrders } from "@/context/order-context";
 import { useAppointments } from "@/context/appointment-context";
+import { useProducts } from "@/context/product-context";
+import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -45,6 +47,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 const availableTimes = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -54,18 +57,27 @@ const availableTimes = [
 
 const orderStatuses: Order['status'][] = ["Pending", "Shipped", "Delivered", "Cancelled"];
 const appointmentStatuses: Appointment['status'][] = ["Pending", "Confirmed", "Cancelled"];
+const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses"];
+const userRoles: User['role'][] = ["customer", "admin"];
 
 
 export default function DashboardPage() {
     const { orders, updateOrder, deleteOrder } = useOrders();
     const { appointments, updateAppointment, deleteAppointment } = useAppointments();
+    const { products, updateProduct, deleteProduct } = useProducts();
+    const { users, updateUser, deleteUser } = useUser();
     const { toast } = useToast();
 
     const [isOrderDialogOpen, setOrderDialogOpen] = useState(false);
     const [isAppointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+    const [isProductDialogOpen, setProductDialogOpen] = useState(false);
+    const [isUserDialogOpen, setUserDialogOpen] = useState(false);
     
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+
 
     const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
         switch (status) {
@@ -91,6 +103,16 @@ export default function DashboardPage() {
         setEditingAppointment({ ...appointment, date: new Date(appointment.date) });
         setAppointmentDialogOpen(true);
     }
+    
+    const handleEditProductClick = (product: Product) => {
+        setEditingProduct({ ...product });
+        setProductDialogOpen(true);
+    }
+
+    const handleEditUserClick = (user: User) => {
+        setEditingUser({ ...user });
+        setUserDialogOpen(true);
+    }
 
     const handleSaveOrder = () => {
         if (editingOrder) {
@@ -109,6 +131,24 @@ export default function DashboardPage() {
             setEditingAppointment(null);
         }
     }
+    
+    const handleSaveProduct = () => {
+        if(editingProduct) {
+            updateProduct(editingProduct.id, editingProduct);
+            toast({ title: "Product Updated", description: `Product ${editingProduct.name} has been updated.`});
+            setProductDialogOpen(false);
+            setEditingProduct(null);
+        }
+    }
+
+    const handleSaveUser = () => {
+        if(editingUser) {
+            updateUser(editingUser.id, editingUser);
+            toast({ title: "User Updated", description: `User ${editingUser.firstName} has been updated.`});
+            setUserDialogOpen(false);
+            setEditingUser(null);
+        }
+    }
 
 
     const handleDeleteOrder = (id: string) => {
@@ -120,6 +160,16 @@ export default function DashboardPage() {
         deleteAppointment(id);
         toast({ title: "Appointment Deleted", description: `Appointment ${id} has been removed.` });
     };
+    
+    const handleDeleteProduct = (id: string) => {
+        deleteProduct(id);
+        toast({ title: "Product Deleted", description: `Product ${id} has been removed.` });
+    };
+
+    const handleDeleteUser = (id: string) => {
+        deleteUser(id);
+        toast({ title: "User Deleted", description: `User ${id} has been removed.` });
+    }
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
@@ -130,9 +180,11 @@ export default function DashboardPage() {
 
         <Tabs defaultValue="orders">
             <div className="flex items-center">
-                <TabsList>
+                <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto">
                     <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
                     <TabsTrigger value="appointments">Appointments ({appointments.length})</TabsTrigger>
+                    <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
+                    <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
                 </TabsList>
                 <div className="ml-auto flex items-center gap-2">
                     <Button size="sm" className="h-8 gap-1" onClick={() => toast({title: "Not Implemented", description: "This feature is not yet available."})}>
@@ -283,6 +335,138 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
             </TabsContent>
+            <TabsContent value="products">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Products</CardTitle>
+                        <CardDescription>Manage your store's products.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Product ID</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead className="text-right">Price</TableHead>
+                                    <TableHead>
+                                        <span className="sr-only">Actions</span>
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {products.length > 0 ? (
+                                    products.map(product => (
+                                        <TableRow key={product.id}>
+                                            <TableCell className="font-medium">{product.id}</TableCell>
+                                            <TableCell>{product.name}</TableCell>
+                                            <TableCell>{product.category}</TableCell>
+                                            <TableCell className="text-right">{product.price.toFixed(2)} DH</TableCell>
+                                            <TableCell className="text-right">
+                                                 <AlertDialog>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                <span className="sr-only">Toggle menu</span>
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleEditProductClick(product)}>Edit</DropdownMenuItem>
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>This action cannot be undone. This will permanently delete the product.</AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                     <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">No products found.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="users">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Users</CardTitle>
+                        <CardDescription>Manage all registered users.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>User ID</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>
+                                        <span className="sr-only">Actions</span>
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {users.length > 0 ? (
+                                    users.map(user => (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium">{user.id}</TableCell>
+                                            <TableCell>{user.firstName} {user.lastName}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell><Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>{user.role}</Badge></TableCell>
+                                            <TableCell className="text-right">
+                                                 <AlertDialog>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={user.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1}>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                <span className="sr-only">Toggle menu</span>
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleEditUserClick(user)}>Edit</DropdownMenuItem>
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>This action cannot be undone. This will permanently delete the user account.</AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                     <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">No users found.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </TabsContent>
         </Tabs>
         
         {/* Edit Order Dialog */}
@@ -394,6 +578,83 @@ export default function DashboardPage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        {/* Edit Product Dialog */}
+        <Dialog open={isProductDialogOpen} onOpenChange={setProductDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+                {editingProduct && (
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="prod-name">Product Name</Label>
+                            <Input id="prod-name" value={editingProduct.name} onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="prod-desc">Description</Label>
+                            <Textarea id="prod-desc" value={editingProduct.description} onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="prod-price">Price</Label>
+                                <Input id="prod-price" type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || 0})} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="prod-category">Category</Label>
+                                <Select value={editingProduct.category} onValueChange={(value) => setEditingProduct({...editingProduct, category: value as Product['category']})}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        {productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleSaveProduct}>Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+         {/* Edit User Dialog */}
+        <Dialog open={isUserDialogOpen} onOpenChange={setUserDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
+                {editingUser && (
+                    <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="user-firstname">First Name</Label>
+                                <Input id="user-firstname" value={editingUser.firstName} onChange={(e) => setEditingUser({...editingUser, firstName: e.target.value})} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="user-lastname">Last Name</Label>
+                                <Input id="user-lastname" value={editingUser.lastName} onChange={(e) => setEditingUser({...editingUser, lastName: e.target.value})} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="user-email">Email</Label>
+                            <Input id="user-email" disabled value={editingUser.email} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="user-role">Role</Label>
+                            <Select value={editingUser.role} onValueChange={(value) => setEditingUser({...editingUser, role: value as User['role']})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    {userRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleSaveUser}>Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </div>
   );
 }
