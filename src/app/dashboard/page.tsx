@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -49,6 +49,9 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const availableTimes = [
@@ -70,6 +73,9 @@ const initialNewUserState: Omit<User, 'id'> = { firstName: '', lastName: '', ema
 
 export default function DashboardPage() {
     const { toast } = useToast();
+    const router = useRouter();
+    const { user } = useUser();
+    const [isLoading, setIsLoading] = useState(true);
 
     const { orders, updateOrder, deleteOrder, addOrder } = useOrders();
     const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -97,6 +103,22 @@ export default function DashboardPage() {
     const [newAppointment, setNewAppointment] = useState(initialNewAppointmentState);
     const [newProduct, setNewProduct] = useState(initialNewProductState);
     const [newUser, setNewUser] = useState(initialNewUserState);
+
+    useEffect(() => {
+        // user context might take a moment to load from session storage
+        const timer = setTimeout(() => {
+            if (user === undefined) { // Still loading
+                return;
+            }
+            if (user === null) {
+                router.push('/login');
+            } else {
+                setIsLoading(false);
+            }
+        }, 100); // Give a brief moment for user context to initialize
+
+        return () => clearTimeout(timer);
+    }, [user, router]);
 
 
     const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
@@ -230,6 +252,44 @@ export default function DashboardPage() {
     const handleDeleteUser = (id: string) => {
         deleteUser(id);
         toast({ title: "User Deleted", description: `User ${id} has been removed.` });
+    }
+
+    if (isLoading) {
+        return (
+            <div className="container mx-auto px-4 md:px-6 py-12">
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-1/4" />
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-96 w-full" />
+                </div>
+            </div>
+        );
+    }
+
+    if (user?.role !== 'admin') {
+        return (
+             <div className="container mx-auto px-4 md:px-6 py-20 flex items-center justify-center min-h-[calc(100vh-theme(spacing.28))]">
+                <Card className="w-full max-w-lg text-center">
+                    <CardHeader>
+                        <div className="mx-auto bg-destructive/10 rounded-full p-4 w-fit">
+                            <ShieldAlert className="h-12 w-12 text-destructive" />
+                        </div>
+                        <CardTitle className="text-3xl font-headline mt-6">Access Denied</CardTitle>
+                        <CardDescription className="text-lg text-muted-foreground mt-2">
+                            You do not have permission to view this page.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mb-6">
+                           This area is restricted to administrators only.
+                        </p>
+                        <Button asChild size="lg">
+                            <Link href="/">Go to Homepage</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
   return (
@@ -886,5 +946,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
