@@ -24,6 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { useAppointments } from "@/context/appointment-context";
+import { useUser } from "@/context/user-context";
+import { useEffect } from "react";
 
 const appointmentSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -42,6 +44,8 @@ const availableTimes = [
 export default function AppointmentPage() {
     const { toast } = useToast();
     const { addAppointment } = useAppointments();
+    const { user } = useUser();
+
   const form = useForm<z.infer<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -50,6 +54,16 @@ export default function AppointmentPage() {
       email: "",
     },
   });
+
+  useEffect(() => {
+    if (user) {
+        form.reset({
+            name: `${user.firstName} ${user.lastName}`,
+            phone: user.phone,
+            email: user.email,
+        });
+    }
+  }, [user, form]);
 
   function onSubmit(values: z.infer<typeof appointmentSchema>) {
     const newAppointment = {
@@ -63,7 +77,7 @@ export default function AppointmentPage() {
         title: "Appointment Booked!",
         description: `We've scheduled your appointment for ${format(values.date, "PPP")} at ${values.time}.`,
     });
-    form.reset();
+    form.reset({ name: "", phone: "", email: "" });
   }
 
   return (
