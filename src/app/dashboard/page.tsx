@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert, XIcon, View } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, XIcon, View, Star } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -462,7 +461,7 @@ export default function DashboardPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Date & Time</TableHead>
+                                    <TableHead>Date &amp; Time</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Contact</TableHead>
                                     <TableHead>
@@ -1209,7 +1208,7 @@ function OrderDetailsView({ order }: { order: Order }) {
                         <div><p className="text-muted-foreground">Order ID</p><p className="font-medium">{order.id}</p></div>
                         <div><p className="text-muted-foreground">Order Date</p><p className="font-medium">{order.orderDate}</p></div>
                         <div><p className="text-muted-foreground">Customer</p><p className="font-medium">{order.customerName}</p></div>
-                        <div><p className="text-muted-foreground">Status</p><p><Badge>{order.status}</Badge></p></div>
+                        <div><p className="text-muted-foreground">Status</p><div><Badge>{order.status}</Badge></div></div>
                         <div><p className="text-muted-foreground">Total Items</p><p className="font-medium">{order.items}</p></div>
                         <div><p className="text-muted-foreground">Total Amount</p><p className="font-bold text-base">{order.total.toFixed(2)} DH</p></div>
                     </div>
@@ -1263,9 +1262,9 @@ function AppointmentDetailsView({ appointment }: { appointment: Appointment }) {
             <CardHeader><CardTitle>Appointment Details</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
                 <div><p className="text-muted-foreground">Appointment ID</p><p className="font-medium">{appointment.id}</p></div>
-                <div><p className="text-muted-foreground">Status</p><p><Badge>{appointment.status}</Badge></p></div>
+                <div><p className="text-muted-foreground">Status</p><div><Badge>{appointment.status}</Badge></div></div>
                 <div><p className="text-muted-foreground">Name</p><p className="font-medium">{appointment.name}</p></div>
-                <div><p className="text-muted-foreground">Date & Time</p><p className="font-medium">{format(new Date(appointment.date), "PPP")} at {appointment.time}</p></div>
+                <div><p className="text-muted-foreground">Date &amp; Time</p><p className="font-medium">{format(new Date(appointment.date), "PPP")} at {appointment.time}</p></div>
                 <div><p className="text-muted-foreground">Email</p><p className="font-medium">{appointment.email}</p></div>
                 <div><p className="text-muted-foreground">Phone</p><p className="font-medium">{appointment.phone}</p></div>
             </CardContent>
@@ -1315,7 +1314,7 @@ function UserDetailsView({ user }: { user: User }) {
             <CardHeader><CardTitle>User Details</CardTitle></CardHeader>
              <CardContent className="grid grid-cols-2 gap-4 text-sm">
                 <div><p className="text-muted-foreground">User ID</p><p className="font-medium">{user.id}</p></div>
-                <div><p className="text-muted-foreground">Role</p><p><Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>{user.role}</Badge></p></div>
+                <div><p className="text-muted-foreground">Role</p><div><Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>{user.role}</Badge></div></div>
                 <div><p className="text-muted-foreground">First Name</p><p className="font-medium">{user.firstName}</p></div>
                 <div><p className="text-muted-foreground">Last Name</p><p className="font-medium">{user.lastName}</p></div>
                 <div className="col-span-2"><p className="text-muted-foreground">Email</p><p className="font-medium">{user.email}</p></div>
