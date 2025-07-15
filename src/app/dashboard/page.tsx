@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 break;
             case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '', status: 'Pending' }; break;
             case 'product': 
-                initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', gender: 'Unisex', image: '', colors: [], tags: [], rating: 0, reviews: 0, description: '', ribbon: '' };
+                initialData = { id: '', name: '', marque: '', price: 0, category: 'Eyeglasses', gender: 'Unisex', image: '', colors: [], tags: [], rating: 0, reviews: 0, description: '', ribbon: '' };
                 setNewProductImageFile(null);
                 setNewColorInput("");
                 setNewTagInput("");
@@ -421,7 +421,10 @@ export default function DashboardPage() {
                 {activeItem.type === 'product' && (
                      <div className="space-y-4">
                         <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} disabled={activeItem.mode === 'edit'} />
-                        <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                            <LabelledInput label="Brand" value={activeItem.data.marque} onChange={(e) => handleActiveItemDataChange('marque', e.target.value)} />
+                        </div>
                         <LabelledInput label="Ribbon Text (e.g. Best Seller)" value={activeItem.data.ribbon} onChange={(e) => handleActiveItemDataChange('ribbon', e.target.value)} />
                         <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
                          <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>
@@ -597,7 +600,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
         switch (type) {
             case 'order': return ['Order ID', 'Customer', 'Status', 'Total'];
             case 'appointment': return ['Name', 'Date & Time', 'Status', 'Contact'];
-            case 'product': return ['Product ID', 'Name', 'Category', 'Price'];
+            case 'product': return ['Product ID', 'Name', 'Brand', 'Price'];
             case 'user': return ['User ID', 'Name', 'Email', 'Role'];
         }
     };
@@ -606,7 +609,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
         switch (type) {
             case 'order': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.customerName}</TableCell>, <TableCell key="status"><Badge variant={getBadgeVariant(item.status)}>{item.status}</Badge></TableCell>, <TableCell key="total" className="text-right">{item.total.toFixed(2)} DH</TableCell>];
             case 'appointment': return [<TableCell key="name" className="font-medium">{item.name}</TableCell>, <TableCell key="date">{new Date(item.date).toLocaleDateString()} at {item.time}</TableCell>, <TableCell key="status"><Badge variant={getBadgeVariant(item.status)}>{item.status}</Badge></TableCell>, <TableCell key="email">{item.email}</TableCell>];
-            case 'product': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.name}</TableCell>, <TableCell key="cat">{item.category}</TableCell>, <TableCell key="price" className="text-right">{item.price.toFixed(2)} DH</TableCell>];
+            case 'product': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.name}</TableCell>, <TableCell key="marque">{item.marque}</TableCell>, <TableCell key="price" className="text-right">{item.price.toFixed(2)} DH</TableCell>];
             case 'user': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.firstName} {item.lastName}</TableCell>, <TableCell key="email">{item.email}</TableCell>, <TableCell key="role"><Badge variant={item.role === 'admin' ? 'destructive' : 'secondary'}>{item.role}</Badge></TableCell>];
         }
     };
@@ -669,33 +672,31 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
     const isDeletable = !(type === 'user' && item.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1);
     
     return (
-        <>
-            <AlertDialog>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEdit(type, item)}>
-                            <Eye className="mr-2 h-4 w-4" /> View / Edit
-                        </DropdownMenuItem>
-                        {type === 'appointment' && item.status !== 'Confirmed' &&
-                            <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
-                        }
-                        <DropdownMenuSeparator />
-                        {isDeletable && (
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-                            </AlertDialogTrigger>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
+        <AlertDialog>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => onEdit(type, item)}>
+                        <Eye className="mr-2 h-4 w-4" /> View / Edit
+                    </DropdownMenuItem>
+                    {type === 'appointment' && item.status !== 'Confirmed' &&
+                        <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
+                    }
+                    <DropdownMenuSeparator />
+                    {isDeletable && (
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                        </AlertDialogTrigger>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }

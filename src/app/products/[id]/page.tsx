@@ -160,6 +160,7 @@ export default function ProductDetailPage() {
             <div className="flex justify-between items-start">
               <span className="text-sm font-medium text-primary">{product.category}</span>
             </div>
+            <h2 className="text-sm uppercase tracking-wider text-muted-foreground mt-2">{product.marque}</h2>
             <h1 className="text-4xl md:text-5xl font-headline font-bold mt-1">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
               <div className="flex items-center">

@@ -2,6 +2,7 @@
 export interface Product {
   id: string;
   name: string;
+  marque?: string;
   price: number;
   category: "Sunglasses" | "Eyeglasses" | "Contact Lens" | "Clip 2 in 1";
   gender: "Homme" | "Femme" | "Unisex";
