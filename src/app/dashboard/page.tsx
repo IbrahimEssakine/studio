@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, XIcon } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -38,7 +38,7 @@ import { useAppointments } from "@/context/appointment-context";
 import { useProducts } from "@/context/product-context";
 import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,6 +104,12 @@ export default function DashboardPage() {
     const [newProduct, setNewProduct] = useState(initialNewProductState);
     const [newUser, setNewUser] = useState(initialNewUserState);
     const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
+    const [newColorInput, setNewColorInput] = useState("");
+
+    const availableColors = useMemo(() => {
+        const allColors = products.flatMap(p => p.colors);
+        return [...new Set(allColors)];
+    }, [products]);
 
     useEffect(() => {
         // user context might take a moment to load from session storage
@@ -281,6 +287,24 @@ export default function DashboardPage() {
     const handleDeleteUser = (id: string) => {
         deleteUser(id);
         toast({ title: "User Deleted", description: `User ${id} has been removed.` });
+    }
+
+    const handleAddColor = () => {
+        if (newColorInput.trim() && !newProduct.colors.includes(newColorInput.trim())) {
+            setNewProduct(prev => ({ ...prev, colors: [...prev.colors, newColorInput.trim()]}));
+            setNewColorInput("");
+        }
+    }
+
+    const handleColorKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddColor();
+        }
+    }
+    
+    const handleRemoveColor = (colorToRemove: string) => {
+        setNewProduct(prev => ({ ...prev, colors: prev.colors.filter(c => c !== colorToRemove)}));
     }
 
     if (isLoading) {
@@ -985,53 +1009,92 @@ export default function DashboardPage() {
         
         {/* Add Product Dialog */}
         <Dialog open={isAddProductDialogOpen} onOpenChange={setAddProductDialogOpen}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-lg">
                 <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-id" className="text-right">Product ID</Label>
-                        <Input id="new-prod-id" value={newProduct.id} onChange={(e) => setNewProduct({...newProduct, id: e.target.value})} className="col-span-3" />
+                <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="new-prod-id">Product ID</Label>
+                        <Input id="new-prod-id" value={newProduct.id} onChange={(e) => setNewProduct({...newProduct, id: e.target.value})} />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-name" className="text-right">Name</Label>
-                        <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label htmlFor="new-prod-name">Name</Label>
+                        <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-desc" className="text-right">Description</Label>
-                        <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label htmlFor="new-prod-desc">Description</Label>
+                        <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-image" className="text-right">Image</Label>
-                        <div className="col-span-3">
-                            <Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} className="hidden" />
-                            <Label htmlFor="new-prod-image" className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer w-full flex items-center gap-2")}>
-                                <Upload className="w-4 h-4" />
-                                <span>{newProductImageFile ? newProductImageFile.name : 'Upload Image'}</span>
-                            </Label>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-prod-image">Image</Label>
+                        <Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} className="hidden" />
+                        <Label htmlFor="new-prod-image" className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer w-full flex items-center gap-2")}>
+                            <Upload className="w-4 h-4" />
+                            <span>{newProductImageFile ? newProductImageFile.name : 'Upload Image'}</span>
+                        </Label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-price">Price</Label>
+                            <Input id="new-prod-price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-category">Category</Label>
+                            <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value as Product['category']})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>{productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
+                            </Select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-price" className="text-right">Price</Label>
-                        <Input id="new-prod-price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label>Colors</Label>
+                        <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
+                            {newProduct.colors.map((color, index) => (
+                                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                    {color}
+                                    <button type="button" onClick={() => handleRemoveColor(color)} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                        <XIcon className="h-3 w-3" />
+                                    </button>
+                                </Badge>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Input 
+                                placeholder="Add a color name" 
+                                value={newColorInput} 
+                                onChange={(e) => setNewColorInput(e.target.value)}
+                                onKeyDown={handleColorKeyDown}
+                            />
+                            <Button type="button" variant="outline" onClick={handleAddColor}>Add</Button>
+                        </div>
+                        {availableColors.length > 0 && (
+                            <div className="pt-2">
+                                <Label className="text-sm text-muted-foreground">Or select existing colors:</Label>
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                    {availableColors.filter(c => !newProduct.colors.includes(c)).map(color => (
+                                        <Button
+                                            key={color}
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setNewProduct(prev => ({...prev, colors: [...prev.colors, color]}))}
+                                            className="text-xs"
+                                        >
+                                            {color}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-category" className="text-right">Category</Label>
-                        <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value as Product['category']})}>
-                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
-                            <SelectContent>{productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
-                        </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-colors" className="text-right">Colors</Label>
-                        <Input id="new-prod-colors" placeholder="e.g. Black, Red, Blue" value={newProduct.colors.join(', ')} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value.split(',').map(c => c.trim())})} className="col-span-3" />
-                    </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-rating" className="text-right">Rating</Label>
-                        <Input id="new-prod-rating" type="number" step="0.1" max="5" min="0" value={newProduct.rating} onChange={(e) => setNewProduct({...newProduct, rating: parseFloat(e.target.value) || 0})} className="col-span-3" />
-                    </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-reviews" className="text-right">Reviews</Label>
-                        <Input id="new-prod-reviews" type="number" value={newProduct.reviews} onChange={(e) => setNewProduct({...newProduct, reviews: parseInt(e.target.value) || 0})} className="col-span-3" />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-rating">Rating</Label>
+                            <Input id="new-prod-rating" type="number" step="0.1" max="5" min="0" value={newProduct.rating} onChange={(e) => setNewProduct({...newProduct, rating: parseFloat(e.target.value) || 0})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-reviews">Reviews</Label>
+                            <Input id="new-prod-reviews" type="number" value={newProduct.reviews} onChange={(e) => setNewProduct({...newProduct, reviews: parseInt(e.target.value) || 0})} />
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>
