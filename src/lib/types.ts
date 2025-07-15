@@ -51,3 +51,10 @@ export interface User {
     gender: string;
     role: 'customer' | 'admin';
 }
+
+export interface LensTypeOption {
+  name: string;
+  price: number;
+  details: string;
+  warranty: string;
+}

@@ -2,26 +2,45 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Star, Upload, CheckCircle, Calendar, Frame } from "lucide-react";
+import { Star, Upload, CheckCircle, Calendar, Frame, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
-
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
-import type { Product } from "@/lib/types";
+import type { Product, LensTypeOption } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 
-const lensTypes = [
-  { name: "Standard (Free)", price: 0 },
-  { name: "Blue-Light Filtering (+290 DH)", price: 290 },
-  { name: "Transitions® (+990 DH)", price: 990 },
+const glassesTypes = [
+  { id: "frames-only", name: "Frames Only" },
+  { id: "with-correction", name: "With Prescription" },
+  { id: "blue-light", name: "Blue-Light Filtering" },
+  { id: "sunglasses", name: "Sunglasses" },
+  { id: "both", name: "Blue-Light & Sunglasses" },
 ];
+
+const prescriptionMethods = [
+    { id: "manual", name: "Enter Manually" },
+    { id: "upload", name: "Upload File" },
+    { id: "book", name: "Book Appointment" },
+];
+
+const lensTypes: LensTypeOption[] = [
+  { name: "Amincis Antireflets bleue", price: 100, details: "1.56 - Correction entre 0.25 et 1", warranty: "1 AN" },
+  { name: "Super Amincis Antireflets bleue", price: 300, details: "1.6 - Correction entre 1 et 3", warranty: "1 AN" },
+  { name: "Ultra amincis Antireflets Bleue", price: 500, details: "1.67 - correction de +/- 4 ou plus", warranty: "1 AN" },
+  { name: "Verres PREMIUM amincis", price: 300, details: "1.56 - Correction entre 0.25 et 1", warranty: "2 ANS" },
+  { name: "Verres PREMIUM Super Amincis", price: 500, details: "1.6 - Correction de +/- 3 ou plus", warranty: "2 ANS" },
+  { name: "Verres PREMIUM Ultra amincis", price: 1500, details: "1.67 - correction de +/- 4 ou plus", warranty: "2 ANS" },
+  { name: "Verres 1.56 amincis photogray antireflets bleue", price: 300, details: "Transition lenses", warranty: "2 ANS" },
+  { name: "Demander un devis (appel)", price: 0, details: "Pour les grands mesures", warranty: "N/A" },
+];
+
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -32,10 +51,13 @@ export default function ProductDetailPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
-  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [prescriptionOption, setPrescriptionOption] = useState("manual");
   
+  // New state for the multi-step flow
+  const [selectedGlassesType, setSelectedGlassesType] = useState('frames-only');
+  const [selectedPrescriptionMethod, setSelectedPrescriptionMethod] = useState('');
+  const [selectedLens, setSelectedLens] = useState<LensTypeOption | null>(null);
+
+  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (productId) {
@@ -48,14 +70,30 @@ export default function ProductDetailPage() {
         }
     }
   }, [getProductById, productId]);
+  
+  // Reset steps when primary glasses type changes
+  useEffect(() => {
+      setSelectedPrescriptionMethod('');
+      setSelectedLens(null);
+  }, [selectedGlassesType]);
 
   if (!product) {
     return <div>Loading...</div>;
   }
 
-  const totalPrice = product.price + (prescriptionOption === 'manual' || prescriptionOption === 'upload' ? selectedLens.price : 0);
-  const lensType = prescriptionOption === 'manual' || prescriptionOption === 'upload' ? selectedLens.name : 'Frames Only';
-  const showLensSelector = prescriptionOption === 'manual' || prescriptionOption === 'upload';
+  const showPrescriptionMethods = selectedGlassesType === 'with-correction';
+  const showLensOptions = showPrescriptionMethods && (selectedPrescriptionMethod === 'manual' || selectedPrescriptionMethod === 'upload');
+
+  const totalPrice = product.price + (selectedLens?.price || 0);
+
+  const getLensTypeName = () => {
+      if (selectedGlassesType === 'frames-only') return 'Frames Only';
+      if (selectedGlassesType === 'with-correction') {
+          if (selectedPrescriptionMethod === 'book') return 'Appointment to be scheduled';
+          return selectedLens ? selectedLens.name : 'Prescription Lens';
+      }
+      return glassesTypes.find(t => t.id === selectedGlassesType)?.name || 'Custom';
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -64,12 +102,12 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    const requiresAppointment = prescriptionOption === 'book';
+    const requiresAppointment = selectedPrescriptionMethod === 'book';
     const cartItem = {
       ...product,
       price: totalPrice,
       color: selectedColor,
-      lensType: lensType,
+      lensType: getLensTypeName(),
       quantity: 1,
       requiresAppointment: requiresAppointment,
     };
@@ -129,35 +167,38 @@ export default function ProductDetailPage() {
             </RadioGroup>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="lens-type" className="font-semibold text-lg">Lens Type</Label>
-            <Select 
-              onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}
-              disabled={!showLensSelector}
-            >
-              <SelectTrigger id="lens-type" className="w-full">
-                <SelectValue placeholder="Select lens type" />
-              </SelectTrigger>
-              <SelectContent>
-                {lensTypes.map(lens => (
-                  <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
+          {/* Step 1: Glasses Type */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-lg">Step 1: Choose your glasses type</h3>
+             <RadioGroup value={selectedGlassesType} onValueChange={setSelectedGlassesType} className="grid grid-cols-2 gap-3">
+                {glassesTypes.map(type => (
+                     <div key={type.id}>
+                        <RadioGroupItem value={type.id} id={type.id} className="sr-only" />
+                        <Label htmlFor={type.id} className={cn("flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer", selectedGlassesType === type.id ? "border-primary" : "border-muted")}>
+                           {type.name}
+                        </Label>
+                    </div>
                 ))}
-              </SelectContent>
-            </Select>
-             {!showLensSelector && <p className="text-xs text-muted-foreground">Select a prescription option to enable lens types.</p>}
+            </RadioGroup>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Prescription Options</h3>
-            <Tabs defaultValue="manual" className="w-full" onValueChange={setPrescriptionOption}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="manual">Enter Manually</TabsTrigger>
-                <TabsTrigger value="upload">Upload File</TabsTrigger>
-                <TabsTrigger value="book">Book Appointment</TabsTrigger>
-                <TabsTrigger value="none">Frames Only</TabsTrigger>
-              </TabsList>
-               <TabsContent value="manual" className="pt-4">
-                <Card>
+          {/* Step 2: Prescription Method */}
+          {showPrescriptionMethods && (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Step 2: Provide your prescription</h3>
+              <RadioGroup value={selectedPrescriptionMethod} onValueChange={setSelectedPrescriptionMethod} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {prescriptionMethods.map(method => (
+                     <div key={method.id}>
+                        <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
+                        <Label htmlFor={method.id} className={cn("flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer", selectedPrescriptionMethod === method.id ? "border-primary" : "border-muted")}>
+                           {method.name}
+                        </Label>
+                    </div>
+                ))}
+              </RadioGroup>
+
+              {selectedPrescriptionMethod === 'manual' && (
+                <Card className="mt-2">
                   <CardContent className="pt-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -169,56 +210,64 @@ export default function ProductDetailPage() {
                         <Input id="os" placeholder="e.g. -1.50" />
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">Please enter the SPH value for each eye.</p>
                   </CardContent>
                 </Card>
-              </TabsContent>
-              <TabsContent value="upload" className="pt-4">
-                <Card>
+              )}
+               {selectedPrescriptionMethod === 'upload' && (
+                <Card className="mt-2">
                   <CardContent className="pt-6 space-y-4">
-                    <div className="relative">
-                      <Button asChild variant="outline" className="w-full">
+                    <Button asChild variant="outline" className="w-full">
                         <Label htmlFor="prescription-upload" className="cursor-pointer flex items-center justify-center gap-2">
                           <Upload className="w-4 h-4" />
-                          <span>Upload Prescription</span>
+                          <span>{prescriptionFile ? prescriptionFile.name : "Upload Prescription"}</span>
                         </Label>
-                      </Button>
-                      <input id="prescription-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
-                    </div>
-                    {prescriptionFile && (
+                    </Button>
+                    <input id="prescription-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
+                     {prescriptionFile && (
                       <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" />
                         {prescriptionFile.name} uploaded successfully.
                       </p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-2">Accepted formats: PDF, JPG, PNG. Or email it to us later.</p>
                   </CardContent>
                 </Card>
-              </TabsContent>
-              <TabsContent value="book" className="pt-4">
-                 <Card>
-                  <CardContent className="pt-6 space-y-2 text-center">
-                    <Calendar className="mx-auto h-10 w-10 text-primary" />
-                    <h4 className="font-semibold">Need a Prescription?</h4>
-                    <p className="text-muted-foreground">
-                      An appointment will be added to your order. You can schedule the date and time during checkout.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="none" className="pt-4">
-                 <Card>
-                  <CardContent className="pt-6 space-y-2 text-center">
-                    <Frame className="mx-auto h-10 w-10 text-primary" />
-                    <h4 className="font-semibold">Frames Only</h4>
-                    <p className="text-muted-foreground">
-                      You've selected to purchase the frames only, without prescription lenses.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Lens Options */}
+          {showLensOptions && (
+            <div className="space-y-3">
+                <h3 className="font-semibold text-lg">Step 3: Choose your lens type</h3>
+                 <RadioGroup onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || null)}>
+                    <div className="space-y-3">
+                    {lensTypes.map(lens => (
+                        <Card key={lens.name} className={cn("cursor-pointer", selectedLens?.name === lens.name && "border-primary")}>
+                           <Label htmlFor={lens.name} className="flex items-start gap-4 p-4 cursor-pointer">
+                                <RadioGroupItem value={lens.name} id={lens.name} className="mt-1" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold">{lens.name} (+{lens.price} DH)</p>
+                                    <p className="text-sm text-muted-foreground">{lens.details}</p>
+                                    <p className="text-xs text-primary font-medium">GARANTIE {lens.warranty}</p>
+                                </div>
+                           </Label>
+                        </Card>
+                    ))}
+                    </div>
+                 </RadioGroup>
+            </div>
+          )}
+          
+           {selectedPrescriptionMethod === 'book' && (
+                 <Alert>
+                    <Calendar className="h-4 w-4" />
+                    <AlertTitle>Appointment Included</AlertTitle>
+                    <AlertDescription>
+                     An appointment will be added to your order. You can schedule the date and time during checkout.
+                    </AlertDescription>
+                </Alert>
+            )}
+
 
           <Card className="bg-muted/50">
             <CardContent className="p-6">
