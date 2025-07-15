@@ -1,0 +1,199 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/context/user-context';
+import { useOrders } from '@/context/order-context';
+import { useAppointments } from '@/context/appointment-context';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
+import { User as UserIcon, Package, Calendar, Briefcase } from 'lucide-react';
+import type { Order, Appointment, CartItem } from '@/lib/types';
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const { user } = useUser();
+  const { orders } = useOrders();
+  const { appointments } = useAppointments();
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 md:px-6 py-12 text-center">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  const userOrders = orders.filter(order => order.shippingAddress?.email === user.email);
+  const userAppointments = appointments.filter(apt => apt.email === user.email);
+
+  const purchasedProducts = userOrders.reduce((acc: CartItem[], order) => {
+    if (order.details) {
+      order.details.forEach(item => {
+        const existingItem = acc.find(p => p.id === item.id && p.color === item.color && p.lensType === item.lensType);
+        if (!existingItem) {
+          acc.push(item);
+        }
+      });
+    }
+    return acc;
+  }, []);
+
+  const getStatusVariant = (status: Order['status'] | Appointment['status']) => {
+    switch (status) {
+      case 'Delivered':
+      case 'Confirmed':
+        return 'default';
+      case 'Shipped':
+      case 'Pending':
+        return 'secondary';
+      case 'Cancelled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  return (
+    <div className="container mx-auto px-4 md:px-6 py-12">
+      <header className="mb-8">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary text-primary-foreground rounded-full p-3">
+            <UserIcon className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-headline font-bold">Welcome, {user.firstName}</h1>
+            <p className="text-muted-foreground">Here's your personal dashboard.</p>
+          </div>
+        </div>
+      </header>
+
+      <Tabs defaultValue="orders" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="orders"><Package className="mr-2 h-4 w-4" /> My Orders</TabsTrigger>
+          <TabsTrigger value="appointments"><Calendar className="mr-2 h-4 w-4" />My Appointments</TabsTrigger>
+          <TabsTrigger value="products"><Briefcase className="mr-2 h-4 w-4" />My Products</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="orders">
+          <Card>
+            <CardHeader>
+              <CardTitle>My Orders</CardTitle>
+              <CardDescription>A history of all your purchases.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {userOrders.length > 0 ? (
+                    userOrders.map(order => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.id}</TableCell>
+                        <TableCell>{order.orderDate}</TableCell>
+                        <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
+                        <TableCell className="text-right">{order.total.toFixed(2)} DH</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center">You haven't placed any orders yet.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appointments">
+          <Card>
+            <CardHeader>
+              <CardTitle>My Appointments</CardTitle>
+              <CardDescription>Your scheduled and past appointments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {userAppointments.length > 0 ? (
+                    userAppointments.map(apt => (
+                      <TableRow key={apt.id}>
+                        <TableCell>{new Date(apt.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{apt.time}</TableCell>
+                        <TableCell><Badge variant={getStatusVariant(apt.status)}>{apt.status}</Badge></TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                     <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">You have no appointments scheduled.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="products">
+           <Card>
+            <CardHeader>
+              <CardTitle>My Products</CardTitle>
+              <CardDescription>A list of all items you have purchased.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {purchasedProducts.length > 0 ? (
+                    purchasedProducts.map(item => (
+                      <TableRow key={`${item.id}-${item.color}-${item.lensType}`}>
+                        <TableCell className="flex items-center gap-4">
+                           <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md" />
+                           <span className="font-medium">{item.name}</span>
+                        </TableCell>
+                        <TableCell>Color: {item.color}, Lens: {item.lensType}</TableCell>
+                        <TableCell className="text-right">{item.price.toFixed(2)} DH</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                     <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">You have not purchased any products yet.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -45,6 +46,7 @@ export default function AppointmentPage() {
     const { toast } = useToast();
     const { addAppointment } = useAppointments();
     const { user } = useUser();
+    const router = useRouter();
 
   const form = useForm<z.infer<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
@@ -78,6 +80,7 @@ export default function AppointmentPage() {
         description: `We've scheduled your appointment for ${format(values.date, "PPP")} at ${values.time}.`,
     });
     form.reset({ name: "", phone: "", email: "" });
+    router.push('/appointment-confirmation');
   }
 
   return (

@@ -154,7 +154,7 @@ export function Header() {
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href="/login">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
                         <DropdownMenuItem onClick={logout}>
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Log out</span>
