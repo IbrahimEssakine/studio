@@ -35,16 +35,21 @@ export default function ShopPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGender, setSelectedGender] = useState<string>('all');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('default');
 
   useEffect(() => {
     const category = searchParams.get('category');
     const gender = searchParams.get('gender');
+    const brandId = searchParams.get('brandId');
     
     if (category) {
         setSelectedCategories([category]);
     }
     if (gender) {
         setSelectedGender(gender);
+    }
+    if (brandId) {
+        setSelectedBrand(brandId);
     }
   }, [searchParams]);
 
@@ -57,14 +62,36 @@ export default function ShopPage() {
   };
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter((product) => {
+    let products = allProducts.filter((product) => {
       const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1];
       const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-      const genderMatch = selectedGender === 'all' || product.gender === selectedGender;
+      const genderMatch = selectedGender === 'all' || product.gender === selectedGender || (selectedGender === 'Homme' && product.gender === 'Unisex') || (selectedGender === 'Femme' && product.gender === 'Unisex');
       const brandMatch = selectedBrand === 'all' || product.brandId === selectedBrand;
       return priceMatch && categoryMatch && genderMatch && brandMatch;
     });
-  }, [allProducts, priceRange, selectedCategories, selectedGender, selectedBrand]);
+
+    switch (sortBy) {
+      case 'price-asc':
+        products.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        products.sort((a, b) => b.price - a.price);
+        break;
+      case 'rating-desc':
+        products.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'name-asc':
+        products.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        products.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      default:
+        break;
+    }
+
+    return products;
+  }, [allProducts, priceRange, selectedCategories, selectedGender, selectedBrand, sortBy]);
 
   const Filters = () => (
     <Card>
@@ -143,22 +170,37 @@ export default function ShopPage() {
         <main className="md:col-span-3">
           <div className="flex justify-between items-center mb-6">
             <p className="text-muted-foreground">{filteredProducts.length} products</p>
-            <div className="md:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <ListFilter className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle className="font-headline">Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-4">
-                    <Filters />
-                  </div>
-                </SheetContent>
-              </Sheet>
+            <div className="flex items-center gap-4">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                      <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                      <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
+                      <SelectItem value="name-asc">Alphabetical: A-Z</SelectItem>
+                      <SelectItem value="name-desc">Alphabetical: Z-A</SelectItem>
+                  </SelectContent>
+              </Select>
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <ListFilter className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle className="font-headline">Filters</SheetTitle>
+                    </SheetHeader>
+                    <div className="p-4">
+                      <Filters />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
