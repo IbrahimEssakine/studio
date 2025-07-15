@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye, Search, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Order, Appointment, Product, User } from "@/lib/types";
+import type { Order, Appointment, Product, User, CartItem } from "@/lib/types";
 import { useOrders } from "@/context/order-context";
 import { useAppointments } from "@/context/appointment-context";
 import { useProducts } from "@/context/product-context";
@@ -46,6 +46,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ export default function DashboardPage() {
     const [activeItem, setActiveItem] = useState<ActiveItem>(null);
     const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
     const [newColorInput, setNewColorInput] = useState("");
+    const [newOrderItems, setNewOrderItems] = useState<CartItem[]>([]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -109,10 +111,13 @@ export default function DashboardPage() {
     };
     
     const handleAddClick = () => {
-        const type = activeTab.slice(0, -1) as ActiveItem['type']; // remove 's' from tab name
+        const type = activeTab.slice(0, -1) as ActiveItem['type'];
         let initialData;
         switch(type) {
-            case 'order': initialData = { customerName: '', status: 'Pending', total: 0, orderDate: new Date().toISOString().split('T')[0], shippingAddress: { email: '', name: '', phone: '', address: '', city: '', zip: '' }, details: [] }; break;
+            case 'order': 
+                initialData = { customerName: '', status: 'Pending', total: 0, orderDate: new Date().toISOString().split('T')[0], shippingAddress: { email: '', name: '', phone: '', address: '', city: '', zip: '' }, details: [] }; 
+                setNewOrderItems([]);
+                break;
             case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '', status: 'Pending' }; break;
             case 'product': 
                 initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', image: '', colors: [], rating: 0, reviews: 0, description: '' };
@@ -151,13 +156,15 @@ export default function DashboardPage() {
                         }
                     };
                     reader.onerror = () => toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
-                    return; // Return because of async operation
+                    return;
                 } else if (type === 'user') {
                     const result = addUser(data);
                     if (result.success) toast({ title: "User Added", description: `User ${data.firstName} has been created.` });
                     else { toast({ title: "Error", description: result.message, variant: "destructive" }); return; }
                 } else if (type === 'order') {
-                    addOrder(data);
+                    const orderTotal = newOrderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+                    const orderToAdd = { ...data, details: newOrderItems, total: orderTotal };
+                    addOrder(orderToAdd);
                     toast({ title: "Order Added", description: `A new order for ${data.customerName} has been created.` });
                 } else if (type === 'appointment') {
                     addAppointment(data);
@@ -171,8 +178,22 @@ export default function DashboardPage() {
                     updateAppointment(data.id, data);
                     toast({ title: "Appointment Updated", description: `Appointment ${data.id} has been updated.` });
                 } else if (type === 'product') {
-                    updateProduct(data.id, data);
-                    toast({ title: "Product Updated", description: `Product ${data.name} has been updated.` });
+                    if (newProductImageFile) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(newProductImageFile);
+                        reader.onloadend = () => {
+                            const imageDataUrl = reader.result as string;
+                            const productToUpdate = { ...data, image: imageDataUrl };
+                            updateProduct(data.id, productToUpdate);
+                            toast({ title: "Product Updated", description: `Product ${data.name} has been updated.` });
+                            setActiveItem(null);
+                        };
+                        reader.onerror = () => toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
+                        return;
+                    } else {
+                        updateProduct(data.id, data);
+                        toast({ title: "Product Updated", description: `Product ${data.name} has been updated.` });
+                    }
                 } else if (type === 'user') {
                     updateUser(data.id, data);
                     toast({ title: "User Updated", description: `User ${data.firstName} has been updated.` });
@@ -207,7 +228,7 @@ export default function DashboardPage() {
     };
 
      const handleShippingAddressChange = (field: string, value: string) => {
-        if (activeItem && activeItem.type === 'order' && activeItem.data.shippingAddress) {
+        if (activeItem && activeItem.data.shippingAddress) {
             const newAddress = { ...activeItem.data.shippingAddress, [field]: value };
             handleActiveItemDataChange('shippingAddress', newAddress);
         }
@@ -247,7 +268,38 @@ export default function DashboardPage() {
         if (!activeItem) return null;
 
         if (activeItem.type === 'order') {
-            const orderItemsCount = activeItem.data.details?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
+            const orderItems = activeItem.mode === 'add' ? newOrderItems : activeItem.data.details || [];
+            const orderItemsCount = orderItems.reduce((acc: number, item: any) => acc + item.quantity, 0);
+            const orderTotal = orderItems.reduce((acc: number, item: any) => acc + item.price * item.quantity, 0);
+            
+            const handleAddProductToOrder = (product: Product) => {
+                 if (!product) return;
+                const newItem: CartItem = {
+                    ...product,
+                    quantity: 1,
+                    color: product.colors[0] || 'Default',
+                    lensType: 'Standard',
+                };
+                setNewOrderItems(prev => [...prev, newItem]);
+            }
+
+            const handleUpdateOrderItem = (index: number, field: keyof CartItem, value: any) => {
+                const updatedItems = [...newOrderItems];
+                if (field === 'quantity') {
+                    updatedItems[index].quantity = Math.max(1, parseInt(value, 10));
+                } else if (field === 'color') {
+                    updatedItems[index].color = value;
+                } else if (field === 'lensType') {
+                    updatedItems[index].lensType = value;
+                }
+                setNewOrderItems(updatedItems);
+            };
+
+            const handleRemoveOrderItem = (index: number) => {
+                setNewOrderItems(prev => prev.filter((_, i) => i !== index));
+            };
+
+
             return (
                 <>
                     <DialogHeader>
@@ -256,13 +308,13 @@ export default function DashboardPage() {
                             {activeItem.mode === 'edit' ? 'View and edit the details of this order.' : 'Create a new order.'}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 py-4 max-h-[70vh] overflow-y-auto pr-6">
+                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 py-4 max-h-[70vh] overflow-y-auto px-6">
                         {/* Left Column */}
                         <div className="space-y-4">
                             <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
                             <div className="grid grid-cols-2 gap-4">
                                 <LabelledInput label="Order Date" value={activeItem.data.orderDate} onChange={(e) => handleActiveItemDataChange('orderDate', e.target.value)} disabled />
-                                <LabelledInput label="Total" type="number" value={activeItem.data.total} onChange={(e) => handleActiveItemDataChange('total', parseFloat(e.target.value) || 0)} />
+                                <LabelledInput label="Total" type="number" value={activeItem.mode === 'add' ? orderTotal.toFixed(2) : activeItem.data.total.toFixed(2)} disabled />
                             </div>
                             <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
                              <Card>
@@ -283,16 +335,46 @@ export default function DashboardPage() {
                             <Card>
                                 <CardHeader className='pb-2'><CardTitle className="text-lg">Order Items ({orderItemsCount})</CardTitle></CardHeader>
                                 <CardContent className="space-y-3 pt-4">
-                                    {activeItem.data.details?.length > 0 ? activeItem.data.details.map((item: any, index: number) => (
-                                        <div key={`${item.id}-${index}`} className="flex items-start gap-4">
-                                            <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md border aspect-square object-cover" />
-                                            <div className="flex-grow">
-                                                <p className="font-semibold">{item.quantity} x {item.name}</p>
-                                                <p className="text-xs text-muted-foreground">Color: {item.color}</p>
-                                                <p className="text-xs text-muted-foreground">Lens: {item.lensType}</p>
-                                            </div>
-                                            <p className="text-sm font-medium text-right">{(item.price * item.quantity).toFixed(2)} DH</p>
+                                     {activeItem.mode === 'add' && (
+                                        <div className="space-y-2">
+                                            <Label>Add Product</Label>
+                                            <ProductSelector products={products} onProductSelect={handleAddProductToOrder} />
                                         </div>
+                                    )}
+
+                                    {orderItems.length > 0 ? orderItems.map((item: any, index: number) => (
+                                        <Card key={`${item.id}-${index}`} className="p-3">
+                                            <div className="flex items-start gap-3">
+                                                <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md border aspect-square object-cover" />
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold">{item.name}</p>
+                                                    <p className="text-sm font-medium text-right">{(item.price * item.quantity).toFixed(2)} DH</p>
+                                                    {activeItem.mode === 'add' ? (
+                                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                                            <Input type="number" value={item.quantity} onChange={(e) => handleUpdateOrderItem(index, 'quantity', e.target.value)} placeholder="Qty" className="h-8"/>
+                                                            <Select value={item.color} onValueChange={(value) => handleUpdateOrderItem(index, 'color', value)}>
+                                                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {products.find(p => p.id === item.id)?.colors.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Input value={item.lensType} onChange={(e) => handleUpdateOrderItem(index, 'lensType', e.target.value)} placeholder="Lens Type" className="h-8 col-span-2"/>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                                            <p className="text-xs text-muted-foreground">Color: {item.color}</p>
+                                                            <p className="text-xs text-muted-foreground">Lens: {item.lensType}</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {activeItem.mode === 'add' && (
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
+                                                        <XIcon className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </Card>
                                     )) : <p className="text-sm text-muted-foreground py-4 text-center">No items in this order.</p>}
                                 </CardContent>
                             </Card>
@@ -307,7 +389,7 @@ export default function DashboardPage() {
             <DialogHeader>
                 <DialogTitle>{activeItem.mode === 'add' ? 'Add New' : 'Edit'} {activeItem.type.charAt(0).toUpperCase() + activeItem.type.slice(1)}</DialogTitle>
             </DialogHeader>
-            <div className="py-4 overflow-y-auto pr-6 max-h-[70vh]">
+            <div className="py-4 overflow-y-auto px-6 max-h-[70vh]">
                 {activeItem.type === 'appointment' && (
                      <div className="space-y-4">
                         <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
@@ -325,10 +407,10 @@ export default function DashboardPage() {
                 )}
                 {activeItem.type === 'product' && (
                      <div className="space-y-4">
-                        {activeItem.mode === 'add' && <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} />}
+                        <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} disabled={activeItem.mode === 'edit'} />
                         <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
                         <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
-                         {activeItem.mode === 'add' && <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>}
+                         <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>
                         <div className="grid grid-cols-2 gap-4">
                             <LabelledInput label="Price" type="number" value={activeItem.data.price} onChange={(e) => handleActiveItemDataChange('price', parseFloat(e.target.value) || 0)} />
                             <div className="space-y-2"><Label>Category</Label><Select value={activeItem.data.category} onValueChange={(v) => handleActiveItemDataChange('category', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
@@ -425,6 +507,43 @@ export default function DashboardPage() {
     </div>
     );
 }
+
+const ProductSelector = ({ products, onProductSelect }: { products: Product[], onProductSelect: (product: Product) => void }) => {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+                    Select product...
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder="Search product..." />
+                    <CommandEmpty>No product found.</CommandEmpty>
+                    <CommandList>
+                        <CommandGroup>
+                            {products.map((product) => (
+                                <CommandItem
+                                    key={product.id}
+                                    value={product.name}
+                                    onSelect={() => {
+                                        onProductSelect(product);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    {product.name}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
 
 const LabelledInput = ({ label, ...props }: { label: string } & React.ComponentProps<typeof Input>) => (
     <div className="space-y-2">
@@ -551,4 +670,165 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
             </AlertDialog>
         </>
     );
+}
+
+```
+  </change>
+  <change>
+    <file>/src/components/ui/command.tsx</file>
+    <content><![CDATA[
+"use client"
+
+import * as React from "react"
+import { type DialogProps } from "@radix-ui/react-dialog"
+import { Command as CommandPrimitive } from "cmdk"
+import { Search } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+
+const Command = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive
+    ref={ref}
+    className={cn(
+      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+Command.displayName = CommandPrimitive.displayName
+
+interface CommandDialogProps extends DialogProps {}
+
+const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+  return (
+    <Dialog {...props}>
+      <DialogContent className="overflow-hidden p-0 shadow-lg">
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+          {children}
+        </Command>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+const CommandInput = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Input>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
+>(({ className, ...props }, ref) => (
+  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    <CommandPrimitive.Input
+      ref={ref}
+      className={cn(
+        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  </div>
+))
+
+CommandInput.displayName = CommandPrimitive.Input.displayName
+
+const CommandList = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.List
+    ref={ref}
+    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    {...props}
+  />
+))
+
+CommandList.displayName = CommandPrimitive.List.displayName
+
+const CommandEmpty = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Empty>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
+>((props, ref) => (
+  <CommandPrimitive.Empty
+    ref={ref}
+    className="py-6 text-center text-sm"
+    {...props}
+  />
+))
+
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName
+
+const CommandGroup = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Group
+    ref={ref}
+    className={cn(
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+
+CommandGroup.displayName = CommandPrimitive.Group.displayName
+
+const CommandSeparator = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 h-px bg-border", className)}
+    {...props}
+  />
+))
+CommandSeparator.displayName = CommandPrimitive.Separator.displayName
+
+const CommandItem = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  />
+))
+
+CommandItem.displayName = CommandPrimitive.Item.displayName
+
+const CommandShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn(
+        "ml-auto text-xs tracking-widest text-muted-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+CommandShortcut.displayName = "CommandShortcut"
+
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+  CommandShortcut,
 }
