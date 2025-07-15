@@ -3,7 +3,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
+import { Star, Upload, CheckCircle, Calendar, Truck, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/language-context";
+import { Separator } from "@/components/ui/separator";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -298,6 +299,17 @@ export default function ProductDetailPage() {
                     {productPage.contactOnWhatsApp}
                   </a>
                 </Button>
+                <Separator />
+                <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <Truck className="h-5 w-5 text-primary" />
+                        <span>De Livraison Estimé: 2-3 days</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Undo2 className="h-5 w-5 text-primary" />
+                        <span>Livraison Gratuite Et Retours: Sur toutes les commandes de plus de 400.00 DH</span>
+                    </div>
+                </div>
             </CardContent>
           </Card>
         </div>
