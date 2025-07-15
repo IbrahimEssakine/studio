@@ -60,7 +60,7 @@ export default function CheckoutPage() {
       description: "Thank you for your purchase. We've sent a confirmation to your email.",
     });
     clearCart();
-    router.push("/");
+    router.push("/order-confirmation");
   }
 
   if (cart.length === 0) {
