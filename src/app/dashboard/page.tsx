@@ -248,54 +248,57 @@ export default function DashboardPage() {
         if (!activeItem) return null;
 
         if (activeItem.type === 'order') {
+            const orderItemsCount = activeItem.data.details?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
             return (
                 <>
-                <DialogHeader>
-                    <DialogTitle>{activeItem.mode === 'edit' ? 'Edit Order' : 'Add New Order'} - {activeItem.data.id || 'New'}</DialogTitle>
-                    <DialogDescription>
-                        {activeItem.mode === 'edit' ? 'Edit the details of this order.' : 'Create a new order.'}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="py-4 overflow-y-auto pr-2 grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                        <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
-                        <div className="grid grid-cols-2 gap-4">
-                            <LabelledInput label="Order Date" value={activeItem.data.orderDate} onChange={(e) => handleActiveItemDataChange('orderDate', e.target.value)} />
-                            <LabelledInput label="Total" type="number" value={activeItem.data.total} onChange={(e) => handleActiveItemDataChange('total', parseFloat(e.target.value) || 0)} />
-                        </div>
-                        <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
-
-                        <Card>
-                            <CardHeader><CardTitle className="text-lg">Shipping Details</CardTitle></CardHeader>
-                            <CardContent className="space-y-3">
-                                <LabelledInput label="Contact Name" value={activeItem.data.shippingAddress?.name} onChange={e => handleShippingAddressChange('name', e.target.value)} />
-                                <LabelledInput label="Email" value={activeItem.data.shippingAddress?.email} onChange={e => handleShippingAddressChange('email', e.target.value)} />
-                                <LabelledInput label="Address" value={activeItem.data.shippingAddress?.address} onChange={e => handleShippingAddressChange('address', e.target.value)} />
-                                <div className="grid grid-cols-2 gap-4">
-                                <LabelledInput label="City" value={activeItem.data.shippingAddress?.city} onChange={e => handleShippingAddressChange('city', e.target.value)} />
-                                <LabelledInput label="ZIP" value={activeItem.data.shippingAddress?.zip} onChange={e => handleShippingAddressChange('zip', e.target.value)} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="space-y-4">
-                        <Card>
-                            <CardHeader><CardTitle className="text-lg">Order Items ({activeItem.data.items || 0})</CardTitle></CardHeader>
-                            <CardContent className="space-y-3">
-                                {activeItem.data.details?.length > 0 ? activeItem.data.details.map((item: any) => (
-                                    <div key={item.id} className="flex items-center gap-3">
-                                        <Image src={item.image} alt={item.name} width={48} height={48} className="rounded-md" />
-                                        <div className="flex-grow">
-                                            <p className="font-semibold">{item.name}</p>
-                                            <p className="text-xs text-muted-foreground">{item.color}, {item.lensType}</p>
-                                        </div>
-                                        <p className="text-sm">{item.price.toFixed(2)} DH</p>
+                    <DialogHeader>
+                        <DialogTitle>{activeItem.mode === 'edit' ? 'Edit Order' : 'Add New Order'} - {activeItem.data.id || 'New'}</DialogTitle>
+                        <DialogDescription>
+                            {activeItem.mode === 'edit' ? 'View and edit the details of this order.' : 'Create a new order.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                        {/* Left Column */}
+                        <div className="space-y-4">
+                            <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <LabelledInput label="Order Date" value={activeItem.data.orderDate} onChange={(e) => handleActiveItemDataChange('orderDate', e.target.value)} disabled />
+                                <LabelledInput label="Total" type="number" value={activeItem.data.total} onChange={(e) => handleActiveItemDataChange('total', parseFloat(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+                             <Card>
+                                <CardHeader className='pb-2'><CardTitle className="text-lg">Shipping Details</CardTitle></CardHeader>
+                                <CardContent className="space-y-3 pt-4">
+                                    <LabelledInput label="Contact Name" value={activeItem.data.shippingAddress?.name} onChange={e => handleShippingAddressChange('name', e.target.value)} />
+                                    <LabelledInput label="Email" value={activeItem.data.shippingAddress?.email} onChange={e => handleShippingAddressChange('email', e.target.value)} />
+                                    <LabelledInput label="Address" value={activeItem.data.shippingAddress?.address} onChange={e => handleShippingAddressChange('address', e.target.value)} />
+                                    <div className="grid grid-cols-2 gap-4">
+                                    <LabelledInput label="City" value={activeItem.data.shippingAddress?.city} onChange={e => handleShippingAddressChange('city', e.target.value)} />
+                                    <LabelledInput label="ZIP" value={activeItem.data.shippingAddress?.zip} onChange={e => handleShippingAddressChange('zip', e.target.value)} />
                                     </div>
-                                )) : <p className="text-sm text-muted-foreground">No items in this order.</p>}
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        {/* Right Column */}
+                        <div className="space-y-4">
+                            <Card>
+                                <CardHeader className='pb-2'><CardTitle className="text-lg">Order Items ({orderItemsCount})</CardTitle></CardHeader>
+                                <CardContent className="space-y-3 pt-4">
+                                    {activeItem.data.details?.length > 0 ? activeItem.data.details.map((item: any, index: number) => (
+                                        <div key={`${item.id}-${index}`} className="flex items-start gap-4">
+                                            <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md border aspect-square object-cover" />
+                                            <div className="flex-grow">
+                                                <p className="font-semibold">{item.quantity} x {item.name}</p>
+                                                <p className="text-xs text-muted-foreground">Color: {item.color}</p>
+                                                <p className="text-xs text-muted-foreground">Lens: {item.lensType}</p>
+                                            </div>
+                                            <p className="text-sm font-medium text-right">{(item.price * item.quantity).toFixed(2)} DH</p>
+                                        </div>
+                                    )) : <p className="text-sm text-muted-foreground py-4 text-center">No items in this order.</p>}
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
-                </div>
                 </>
             );
         }
@@ -305,7 +308,7 @@ export default function DashboardPage() {
             <DialogHeader>
                 <DialogTitle>{activeItem.mode === 'add' ? 'Add New' : 'Edit'} {activeItem.type.charAt(0).toUpperCase() + activeItem.type.slice(1)}</DialogTitle>
             </DialogHeader>
-            <div className="py-4 overflow-y-auto pr-2">
+            <div className="py-4 overflow-y-auto pr-2 max-h-[70vh]">
                 {activeItem.type === 'appointment' && (
                      <div className="space-y-4">
                         <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
@@ -411,7 +414,7 @@ export default function DashboardPage() {
 
         {/* Unified Dialog for Add/Edit/View */}
         <Dialog open={!!activeItem} onOpenChange={(isOpen) => !isOpen && setActiveItem(null)}>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+            <DialogContent className="sm:max-w-4xl">
                  {renderDialogContent()}
                  <DialogFooter>
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
@@ -533,14 +536,17 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
                         <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
                     }
                     <DropdownMenuSeparator />
-                    {isDeletable && <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>}
+                    {isDeletable && (
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Delete</DropdownMenuItem>
+                        </AlertDialogTrigger>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <AlertDialogContent>
                 <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></Footer>
             </AlertDialogContent>
         </AlertDialog>
     );
 }
-
