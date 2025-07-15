@@ -49,7 +49,6 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import { notFound, useRouter } from 'next/navigation';
 
 
 const availableTimes = [
@@ -70,29 +69,7 @@ const initialNewUserState: Omit<User, 'id'> = { firstName: '', lastName: '', ema
 
 
 export default function DashboardPage() {
-    const { user } = useUser();
-    const router = useRouter();
     const { toast } = useToast();
-
-    const [isClient, setIsClient] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-        if (isClient) {
-            if (!user) {
-                router.push('/login');
-            } else if (user.role !== 'admin') {
-                notFound();
-            } else {
-                setAuthChecked(true);
-            }
-        }
-    }, [isClient, user, router]);
-
 
     const { orders, updateOrder, deleteOrder, addOrder } = useOrders();
     const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
@@ -254,15 +231,6 @@ export default function DashboardPage() {
         deleteUser(id);
         toast({ title: "User Deleted", description: `User ${id} has been removed.` });
     }
-
-    if (!isClient || !authChecked) {
-        return (
-            <div className="container mx-auto px-4 md:px-6 py-12">
-                <p>Loading...</p>
-            </div>
-        );
-    }
-
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
@@ -918,3 +886,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
