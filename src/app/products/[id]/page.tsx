@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -31,14 +32,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+  
+  const productId = params.id;
 
   useEffect(() => {
-    const foundProduct = getProductById(params.id);
+    const foundProduct = getProductById(productId);
     if (foundProduct) {
       setProduct(foundProduct);
       setSelectedColor(foundProduct.colors[0]);
     }
-  }, [getProductById, params.id]);
+  }, [getProductById, productId]);
 
   if (!product) {
     return <div>Loading...</div>;
