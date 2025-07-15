@@ -106,9 +106,9 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold text-center text-foreground">
             Nos Collections
           </h2>
-           <div className="mt-12 flex space-x-4 md:space-x-6 overflow-x-auto pb-4">
+           <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
                 {collections.map((collection, index) => (
-                    <div key={index} className="flex-shrink-0 w-4/5 sm:w-1/3 lg:w-1/5">
+                    <div key={index}>
                         <Card className="hover:shadow-lg transition-shadow group relative overflow-hidden h-64 flex flex-col justify-end">
                             <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/60 via-black/40 to-transparent flex flex-col justify-end h-full">
                                 <div className="text-white">
