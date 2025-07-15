@@ -12,7 +12,7 @@ const mockAppointments: Appointment[] = [
 
 interface AppointmentContextType {
   appointments: Appointment[];
-  addAppointment: (appointment: Appointment) => void;
+  addAppointment: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
   updateAppointment: (appointmentId: string, updatedAppointment: Partial<Appointment>) => void;
   deleteAppointment: (appointmentId: string) => void;
 }
@@ -50,8 +50,13 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [appointments, isInitialLoad]);
 
-  const addAppointment = (appointment: Appointment) => {
-    setAppointments(prevAppointments => [appointment, ...prevAppointments]);
+  const addAppointment = (appointment: Omit<Appointment, 'id' | 'status'>) => {
+    const newAppointment: Appointment = {
+      ...appointment,
+      id: `APT${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      status: "Pending",
+    };
+    setAppointments(prevAppointments => [newAppointment, ...prevAppointments]);
   };
 
   const updateAppointment = (appointmentId: string, updatedAppointment: Partial<Appointment>) => {

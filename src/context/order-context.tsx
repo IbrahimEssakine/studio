@@ -15,7 +15,7 @@ const mockOrders: Order[] = [
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (order: Order) => void;
+  addOrder: (order: Omit<Order, 'id' | 'orderDate' | 'items'>) => void;
   updateOrder: (orderId: string, updatedOrder: Partial<Order>) => void;
   deleteOrder: (orderId: string) => void;
 }
@@ -51,8 +51,14 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [orders, isInitialLoad]);
 
-  const addOrder = (order: Order) => {
-    setOrders(prevOrders => [order, ...prevOrders]);
+  const addOrder = (order: Omit<Order, 'id' | 'orderDate' | 'items'>) => {
+    const newOrder: Order = {
+        ...order,
+        id: `ORD${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        orderDate: new Date().toISOString().split('T')[0],
+        items: order.details?.reduce((acc, item) => acc + item.quantity, 0) || 0,
+    };
+    setOrders(prevOrders => [newOrder, ...prevOrders]);
   };
 
   const updateOrder = (orderId: string, updatedOrder: Partial<Order>) => {

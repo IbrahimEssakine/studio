@@ -39,7 +39,7 @@ interface UserContextType {
   users: User[];
   login: (email: string, password: string) => { success: boolean, isAdmin: boolean, message: string };
   logout: () => void;
-  addUser: (userData: Omit<User, 'id' | 'role'>) => { success: boolean, message: string };
+  addUser: (userData: Omit<User, 'id'>) => { success: boolean, message: string };
   updateUser: (userId: string, updatedData: Partial<User>) => { success: boolean, message: string };
   deleteUser: (userId: string) => { success: boolean, message: string };
 }
@@ -123,7 +123,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     router.push('/login');
   };
 
-  const addUser = (userData: Omit<User, 'id' | 'role'>): { success: boolean, message: string } => {
+  const addUser = (userData: Omit<User, 'id'>): { success: boolean, message: string } => {
     const existingUser = users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
     if (existingUser) {
         return { success: false, message: 'An account with this email already exists.' };
@@ -132,7 +132,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newUser: User = {
         ...userData,
         id: `USER${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        role: 'customer'
     };
     setUsers(prevUsers => [...prevUsers, newUser]);
     return { success: true, message: 'Account created successfully.' };

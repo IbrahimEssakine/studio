@@ -60,23 +60,40 @@ const appointmentStatuses: Appointment['status'][] = ["Pending", "Confirmed", "C
 const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses"];
 const userRoles: User['role'][] = ["customer", "admin"];
 
+const initialNewOrderState: Omit<Order, 'id' | 'orderDate' | 'items'> = { customerName: '', status: 'Pending', total: 0, shippingAddress: { name: '', email: '' }};
+const initialNewAppointmentState: Omit<Appointment, 'id' | 'status'> = { name: '', email: '', phone: '', date: new Date(), time: '' };
+const initialNewProductState: Omit<Product, 'id' | 'rating' | 'reviews'> = { name: '', price: 0, category: 'Eyeglasses', image: 'https://placehold.co/600x400.png', colors: [], description: '' };
+const initialNewUserState: Omit<User, 'id' | 'role'> = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '' };
+
 
 export default function DashboardPage() {
-    const { orders, updateOrder, deleteOrder } = useOrders();
-    const { appointments, updateAppointment, deleteAppointment } = useAppointments();
-    const { products, updateProduct, deleteProduct } = useProducts();
-    const { users, updateUser, deleteUser } = useUser();
+    const { orders, updateOrder, deleteOrder, addOrder } = useOrders();
+    const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
+    const { products, addProduct, updateProduct, deleteProduct } = useProducts();
+    const { users, addUser, updateUser, deleteUser } = useUser();
     const { toast } = useToast();
+    
+    const [activeTab, setActiveTab] = useState("orders");
 
     const [isOrderDialogOpen, setOrderDialogOpen] = useState(false);
     const [isAppointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
     const [isProductDialogOpen, setProductDialogOpen] = useState(false);
     const [isUserDialogOpen, setUserDialogOpen] = useState(false);
-    
+
+    const [isAddOrderDialogOpen, setAddOrderDialogOpen] = useState(false);
+    const [isAddAppointmentDialogOpen, setAddAppointmentDialogOpen] = useState(false);
+    const [isAddProductDialogOpen, setAddProductDialogOpen] = useState(false);
+    const [isAddUserDialogOpen, setAddUserDialogOpen] = useState(false);
+
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    
+    const [newOrder, setNewOrder] = useState(initialNewOrderState);
+    const [newAppointment, setNewAppointment] = useState(initialNewAppointmentState);
+    const [newProduct, setNewProduct] = useState(initialNewProductState);
+    const [newUser, setNewUser] = useState(initialNewUserState);
 
 
     const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
@@ -93,6 +110,15 @@ export default function DashboardPage() {
                 return 'outline';
         }
     };
+
+    const handleAddNewClick = () => {
+        switch(activeTab) {
+            case 'orders': setAddOrderDialogOpen(true); break;
+            case 'appointments': setAddAppointmentDialogOpen(true); break;
+            case 'products': setAddProductDialogOpen(true); break;
+            case 'users': setAddUserDialogOpen(true); break;
+        }
+    }
 
     const handleEditOrderClick = (order: Order) => {
         setEditingOrder({ ...order });
@@ -149,6 +175,38 @@ export default function DashboardPage() {
             setEditingUser(null);
         }
     }
+    
+    const handleAddOrder = () => {
+        addOrder(newOrder);
+        toast({ title: "Order Added", description: `A new order for ${newOrder.customerName} has been created.` });
+        setAddOrderDialogOpen(false);
+        setNewOrder(initialNewOrderState);
+    };
+    
+    const handleAddAppointment = () => {
+        addAppointment(newAppointment);
+        toast({ title: "Appointment Added", description: `A new appointment for ${newAppointment.name} has been created.` });
+        setAddAppointmentDialogOpen(false);
+        setNewAppointment(initialNewAppointmentState);
+    }
+
+    const handleAddProduct = () => {
+        addProduct({ ...newProduct, rating: 0, reviews: 0 });
+        toast({ title: "Product Added", description: `Product ${newProduct.name} has been created.` });
+        setAddProductDialogOpen(false);
+        setNewProduct(initialNewProductState);
+    }
+
+    const handleAddUser = () => {
+        const result = addUser({ ...newUser, role: 'customer' });
+         if (result.success) {
+            toast({ title: "User Added", description: `User ${newUser.firstName} has been created.` });
+            setAddUserDialogOpen(false);
+            setNewUser(initialNewUserState);
+         } else {
+             toast({ title: "Error", description: result.message, variant: "destructive" });
+         }
+    }
 
 
     const handleDeleteOrder = (id: string) => {
@@ -178,7 +236,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground">Manage orders, appointments, and more.</p>
         </header>
 
-        <Tabs defaultValue="orders">
+        <Tabs defaultValue="orders" onValueChange={setActiveTab}>
             <div className="flex items-center">
                 <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto">
                     <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
@@ -187,7 +245,7 @@ export default function DashboardPage() {
                     <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
                 </TabsList>
                 <div className="ml-auto flex items-center gap-2">
-                    <Button size="sm" className="h-8 gap-1" onClick={() => toast({title: "Not Implemented", description: "This feature is not yet available."})}>
+                    <Button size="sm" className="h-8 gap-1" onClick={handleAddNewClick}>
                         <PlusCircle className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                             Add New
@@ -654,6 +712,159 @@ export default function DashboardPage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        
+        {/* Add Order Dialog */}
+        <Dialog open={isAddOrderDialogOpen} onOpenChange={setAddOrderDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Add New Order</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="new-order-customerName">Customer Name</Label>
+                        <Input id="new-order-customerName" value={newOrder.customerName} onChange={(e) => setNewOrder({...newOrder, customerName: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                         <Label htmlFor="new-order-status">Status</Label>
+                         <Select value={newOrder.status} onValueChange={(value) => setNewOrder({...newOrder, status: value as Order['status']})}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{orderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
+                         </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-order-total">Total</Label>
+                        <Input id="new-order-total" type="number" value={newOrder.total} onChange={(e) => setNewOrder({...newOrder, total: parseFloat(e.target.value) || 0})} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleAddOrder}>Add Order</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        {/* Add Appointment Dialog */}
+        <Dialog open={isAddAppointmentDialogOpen} onOpenChange={setAddAppointmentDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Add New Appointment</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="new-apt-name">Name</Label>
+                        <Input id="new-apt-name" value={newAppointment.name} onChange={(e) => setNewAppointment({...newAppointment, name: e.target.value})} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-apt-email">Email</Label>
+                        <Input id="new-apt-email" type="email" value={newAppointment.email} onChange={(e) => setNewAppointment({...newAppointment, email: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-apt-phone">Phone</Label>
+                        <Input id="new-apt-phone" value={newAppointment.phone} onChange={(e) => setNewAppointment({...newAppointment, phone: e.target.value})} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Date</Label>
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !newAppointment.date && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {newAppointment.date ? format(newAppointment.date, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newAppointment.date} onSelect={(date) => date && setNewAppointment({...newAppointment, date: date})} initialFocus /></PopoverContent>
+                        </Popover>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-apt-time">Time</Label>
+                         <Select value={newAppointment.time} onValueChange={(value) => setNewAppointment({...newAppointment, time: value})}>
+                            <SelectTrigger><SelectValue placeholder="Select a time" /></SelectTrigger>
+                            <SelectContent>{availableTimes.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleAddAppointment}>Add Appointment</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        {/* Add Product Dialog */}
+        <Dialog open={isAddProductDialogOpen} onOpenChange={setAddProductDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="new-prod-name">Product Name</Label>
+                        <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-prod-desc">Description</Label>
+                        <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-prod-image">Image URL</Label>
+                        <Input id="new-prod-image" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-price">Price</Label>
+                            <Input id="new-prod-price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-prod-category">Category</Label>
+                            <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value as Product['category']})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>{productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-prod-colors">Colors (comma separated)</Label>
+                        <Input id="new-prod-colors" value={newProduct.colors.join(', ')} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value.split(',').map(c => c.trim())})} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleAddProduct}>Add Product</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        {/* Add User Dialog */}
+        <Dialog open={isAddUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Add New User</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="new-user-firstname">First Name</Label>
+                            <Input id="new-user-firstname" value={newUser.firstName} onChange={(e) => setNewUser({...newUser, firstName: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-user-lastname">Last Name</Label>
+                            <Input id="new-user-lastname" value={newUser.lastName} onChange={(e) => setNewUser({...newUser, lastName: e.target.value})} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-user-email">Email</Label>
+                        <Input id="new-user-email" type="email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-user-password">Password</Label>
+                        <Input id="new-user-password" type="password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-user-role">Role</Label>
+                        <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value as User['role']})}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{userRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleAddUser}>Add User</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
 
     </div>
   );
