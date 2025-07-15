@@ -3,13 +3,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Order } from '@/lib/types';
+import { sendNewOrderEmail, sendOrderStatusUpdateEmail } from '@/services/email-service';
 
 // Mock data
 const mockOrders: Order[] = [
-  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 2800, items: 2 },
-  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 1500, items: 1 },
-  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 4200, items: 3 },
-  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 950, items: 1 },
+  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 2800, items: 2, shippingAddress: { email: 'customer@example.com', name: 'John Doe'} },
+  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 1500, items: 1, shippingAddress: { email: 'jane@example.com', name: 'Jane Smith'} },
+  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 4200, items: 3, shippingAddress: { email: 'bob@example.com', name: 'Bob Johnson'} },
+  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 950, items: 1, shippingAddress: { email: 'alice@example.com', name: 'Alice Williams'} },
 ];
 
 
@@ -59,14 +60,22 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         items: order.details?.reduce((acc, item) => acc + item.quantity, 0) || 0,
     };
     setOrders(prevOrders => [newOrder, ...prevOrders]);
+    sendNewOrderEmail(newOrder);
   };
 
   const updateOrder = (orderId: string, updatedOrder: Partial<Order>) => {
+    const originalOrder = orders.find(o => o.id === orderId);
+
     setOrders(prevOrders =>
       prevOrders.map(order =>
         order.id === orderId ? { ...order, ...updatedOrder } : order
       )
     );
+
+    if (originalOrder && updatedOrder.status && originalOrder.status !== updatedOrder.status) {
+      const finalOrder = { ...originalOrder, ...updatedOrder };
+      sendOrderStatusUpdateEmail(finalOrder);
+    }
   };
 
   const deleteOrder = (orderId: string) => {

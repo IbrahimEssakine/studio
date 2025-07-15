@@ -2,11 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Appointment } from '@/lib/types';
+import { sendNewAppointmentEmail, sendAppointmentStatusUpdateEmail } from '@/services/email-service';
 
 // Mock data
 const mockAppointments: Appointment[] = [
     { id: "APT001", name: "Emily Brown", email: "emily@example.com", phone: "111-222-3333", date: new Date("2024-11-05"), time: "10:00 AM", status: "Confirmed" },
-    { id: "APT002", name: "Michael Clark", email: "michael@example.com", phone: "444-555-6666", date: new Date("2024-11-06"), time: "02:30 PM", status: "Pending" },
+    { id: "APT002", name: "Michael Clark", email: "customer@example.com", phone: "444-555-6666", date: new Date("2024-11-06"), time: "02:30 PM", status: "Pending" },
     { id: "APT003", name: "Sarah Davis", email: "sarah@example.com", phone: "777-888-9999", date: new Date("2024-11-02"), time: "11:00 AM", status: "Cancelled" },
 ];
 
@@ -57,14 +58,22 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       status: "Pending",
     };
     setAppointments(prevAppointments => [newAppointment, ...prevAppointments]);
+    sendNewAppointmentEmail(newAppointment);
   };
 
   const updateAppointment = (appointmentId: string, updatedAppointment: Partial<Appointment>) => {
+    const originalAppointment = appointments.find(a => a.id === appointmentId);
+
     setAppointments(prevAppointments =>
       prevAppointments.map(apt =>
         apt.id === appointmentId ? { ...apt, ...updatedAppointment } : apt
       )
     );
+    
+    if (originalAppointment && updatedAppointment.status && originalAppointment.status !== updatedAppointment.status) {
+        const finalAppointment = { ...originalAppointment, ...updatedAppointment };
+        sendAppointmentStatusUpdateEmail(finalAppointment);
+    }
   };
 
   const deleteAppointment = (appointmentId: string) => {
