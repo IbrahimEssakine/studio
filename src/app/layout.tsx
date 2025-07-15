@@ -14,6 +14,7 @@ import { ProductProvider } from "@/context/product-context";
 import { LanguageProvider } from "@/context/language-context";
 import React from "react";
 import { WhatsAppFAB } from "@/components/whatsapp-fab";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -54,23 +55,30 @@ export default function RootLayout({
             playfairDisplay.variable
           )}
         >
-          <UserProvider>
-              <OrderProvider>
-                <AppointmentProvider>
-                  <ProductProvider>
-                    <CartProvider>
-                      <div className="relative flex min-h-dvh flex-col bg-background">
-                        <Header />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                        <WhatsAppFAB />
-                      </div>
-                      <Toaster />
-                    </CartProvider>
-                  </ProductProvider>
-                </AppointmentProvider>
-              </OrderProvider>
-          </UserProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <UserProvider>
+                <OrderProvider>
+                  <AppointmentProvider>
+                    <ProductProvider>
+                      <CartProvider>
+                        <div className="relative flex min-h-dvh flex-col bg-background">
+                          <Header />
+                          <main className="flex-1">{children}</main>
+                          <Footer />
+                          <WhatsAppFAB />
+                        </div>
+                        <Toaster />
+                      </CartProvider>
+                    </ProductProvider>
+                  </AppointmentProvider>
+                </OrderProvider>
+            </UserProvider>
+          </ThemeProvider>
         </body>
       </html>
     </LanguageProvider>

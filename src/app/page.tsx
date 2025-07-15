@@ -44,6 +44,14 @@ export default function Home() {
     }
   ];
 
+  const collections = [
+      { icon: <Contact className="h-8 w-8 text-primary" />, title: "Lentilles de Contact", count: contactLensesCount },
+      { icon: <Glasses className="h-8 w-8 text-primary" />, title: "Solaires Homme", count: sunglassesHommeCount },
+      { icon: <Briefcase className="h-8 w-8 text-primary" />, title: "Clip 2 en 1", count: clip2in1Count },
+      { icon: <PersonStanding className="h-8 w-8 text-primary" />, title: "Lunettes Femme", count: lunettesFemmeCount },
+      { icon: <PersonStanding className="h-8 w-8 text-primary" />, title: "Lunettes Homme", count: lunettesHommeCount },
+  ];
+
   return (
     <div className="flex flex-col">
       <section className="relative w-full py-20 md:py-32 lg:py-40 bg-card">
@@ -98,28 +106,19 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-headline font-bold text-center text-foreground">
             Nos Collections
           </h2>
-           <div className="mt-12 grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
-            <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="items-center pb-2"><Contact className="h-8 w-8 text-primary" /></CardHeader>
-                <CardContent><p className="font-semibold">Lentilles de Contact</p><p className="text-sm text-muted-foreground">({contactLensesCount} articles)</p></CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="items-center pb-2"><Glasses className="h-8 w-8 text-primary" /></CardHeader>
-                <CardContent><p className="font-semibold">Solaires Homme</p><p className="text-sm text-muted-foreground">({sunglassesHommeCount} articles)</p></CardContent>
-            </Card>
-             <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="items-center pb-2"><Briefcase className="h-8 w-8 text-primary" /></CardHeader>
-                <CardContent><p className="font-semibold">Clip 2 en 1</p><p className="text-sm text-muted-foreground">({clip2in1Count} articles)</p></CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="items-center pb-2"><PersonStanding className="h-8 w-8 text-primary" /></CardHeader>
-                <CardContent><p className="font-semibold">Lunettes Femme</p><p className="text-sm text-muted-foreground">({lunettesFemmeCount} articles)</p></CardContent>
-            </Card>
-             <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="items-center pb-2"><PersonStanding className="h-8 w-8 text-primary" /></CardHeader>
-                <CardContent><p className="font-semibold">Lunettes Homme</p><p className="text-sm text-muted-foreground">({lunettesHommeCount} articles)</p></CardContent>
-            </Card>
-          </div>
+           <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                {collections.map((collection, index) => (
+                    <Card key={index} className="hover:shadow-lg transition-shadow group relative overflow-hidden h-48 flex flex-col justify-end">
+                        <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
+                            <div className="text-white">
+                                {collection.icon}
+                                <p className="font-semibold mt-2">{collection.title}</p>
+                                <p className="text-sm">({collection.count} articles)</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
         </div>
       </section>
 
