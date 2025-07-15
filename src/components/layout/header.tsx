@@ -1,0 +1,131 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Glasses, Menu, User } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import React from "react";
+
+const navLinks = [
+  { href: "/shop", label: "Shop" },
+  { href: "/about", label: "About Us" },
+  { href: "/book-appointment", label: "Book Appointment" },
+];
+
+export function Header() {
+  const pathname = usePathname();
+
+  const NavLink = ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => {
+    const isActive = pathname === href;
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "text-sm font-medium transition-colors hover:text-primary",
+          isActive ? "text-primary font-semibold" : "text-muted-foreground"
+        )}
+      >
+        {children}
+      </Link>
+    );
+  };
+
+  const MobileNavLink = ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => {
+    const isActive = pathname === href;
+    return (
+      <SheetClose asChild>
+        <Link
+          href={href}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            isActive ? "bg-accent text-accent-foreground" : ""
+          )}
+        >
+          <div className="text-sm font-medium leading-none">{children}</div>
+        </Link>
+      </SheetClose>
+    );
+  };
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Glasses className="h-6 w-6 text-primary" />
+            <span className="hidden font-bold sm:inline-block font-headline">
+              Agharas Vision
+            </span>
+          </Link>
+          <nav className="flex items-center gap-6 text-sm">
+            {navLinks.map((link) => (
+              <NavLink key={link.href} href={link.href}>
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <div className="p-4">
+                <Link
+                  href="/"
+                  className="mr-6 flex items-center space-x-2 mb-6"
+                >
+                  <Glasses className="h-6 w-6 text-primary" />
+                  <span className="font-bold font-headline">Agharas Vision</span>
+                </Link>
+                <div className="flex flex-col gap-2">
+                  {navLinks.map((link) => (
+                    <MobileNavLink key={link.href} href={link.href}>
+                      {link.label}
+                    </MobileNavLink>
+                  ))}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <nav className="flex items-center">
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/login">
+                <User className="h-5 w-5" />
+                <span className="sr-only">Login / Dashboard</span>
+              </Link>
+            </Button>
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}
