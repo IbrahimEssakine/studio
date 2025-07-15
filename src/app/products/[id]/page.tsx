@@ -3,22 +3,25 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Star, Upload, CheckCircle, Calendar, Truck, Undo2 } from "lucide-react";
+import Link from "next/link";
+import { Star, Upload, CheckCircle, Calendar, Truck, Undo2, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useParams } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
-import type { Product, LensTypeOption } from "@/lib/types";
+import type { Product, LensTypeOption, Review } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/language-context";
 import { Separator } from "@/components/ui/separator";
 import { useBrands } from "@/context/brand-context";
+import { Textarea } from "@/components/ui/textarea";
+import { useUser } from "@/context/user-context";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -26,15 +29,33 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const renderStars = (rating: number, onStarClick?: (rating: number) => void) => {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <Star
+        key={i}
+        className={cn(
+          "w-5 h-5",
+          rating >= i ? "fill-amber-400 text-amber-400" : "fill-muted stroke-muted-foreground",
+          onStarClick && "cursor-pointer"
+        )}
+        onClick={() => onStarClick?.(i)}
+      />
+    );
+  }
+  return <div className="flex items-center">{stars}</div>;
+};
 
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
-  const { getProductById } = useProducts();
+  const { getProductById, addReview } = useProducts();
   const { brands } = useBrands();
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { dictionary } = useLanguage();
+  const { user } = useUser();
   const { productPage } = dictionary;
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -45,6 +66,10 @@ export default function ProductDetailPage() {
   const [selectedLens, setSelectedLens] = useState<LensTypeOption | null>(null);
 
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+
+  // Review state
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
 
   const glassesTypes = [
     { id: "with-correction", name: productPage.glassesTypes.withCorrection },
@@ -135,6 +160,28 @@ export default function ProductDetailPage() {
       description: productPage.toast.description.replace('{productName}', product.name),
     });
   };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    if (reviewRating === 0 || !reviewComment.trim()) {
+      toast({ title: "Review Incomplete", description: "Please provide a rating and a comment.", variant: "destructive" });
+      return;
+    }
+
+    addReview(product.id, {
+      author: `${user.firstName} ${user.lastName.charAt(0)}.`,
+      rating: reviewRating,
+      comment: reviewComment,
+    });
+
+    toast({ title: "Review Submitted", description: "Thank you for your feedback!" });
+    setReviewRating(0);
+    setReviewComment("");
+    // We need to fetch the updated product to show the new review
+    const updatedProduct = getProductById(productId);
+    setProduct(updatedProduct || null);
+  }
   
   const whatsappNumber = "212628889950";
   const whatsappMessage = encodeURIComponent(`Hello, I would like more information about the product: ${product.name} (ID: ${product.id})`);
@@ -167,13 +214,8 @@ export default function ProductDetailPage() {
             {brandName && <h2 className="text-sm uppercase tracking-wider text-muted-foreground mt-2">{brandName}</h2>}
             <h1 className="text-4xl md:text-5xl font-headline font-bold mt-1">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
-              <div className="flex items-center">
-                {[...Array(Math.floor(product.rating))].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                ))}
-                {product.rating % 1 !== 0 && <Star className="w-5 h-5 fill-amber-400 text-amber-400" />}
-              </div>
-              <span className="text-muted-foreground">{product.rating} ({product.reviews} {productPage.reviews})</span>
+              {renderStars(product.rating)}
+              <span className="text-muted-foreground">{product.rating.toFixed(1)} ({product.reviews} {productPage.reviews})</span>
             </div>
           </div>
 
@@ -317,6 +359,78 @@ export default function ProductDetailPage() {
                 </div>
             </CardContent>
           </Card>
+
+          <Separator />
+          
+           {/* Reviews Section */}
+           <div>
+              <h3 className="text-2xl font-headline font-bold mb-4">Customer Reviews</h3>
+              <div className="space-y-6">
+                {product.reviewsList && product.reviewsList.length > 0 ? (
+                  product.reviewsList.map(review => (
+                    <Card key={review.id}>
+                      <CardHeader>
+                        <div className="flex items-center gap-4">
+                           <UserCircle className="w-10 h-10 text-muted-foreground" />
+                           <div>
+                             <CardTitle className="text-base">{review.author}</CardTitle>
+                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                               {renderStars(review.rating)}
+                               <span>·</span>
+                               <span>{new Date(review.date).toLocaleDateString()}</span>
+                             </div>
+                           </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">{review.comment}</p>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">No reviews yet. Be the first to leave one!</p>
+                )}
+              </div>
+
+              <Separator className="my-8" />
+              
+              {user ? (
+                <form onSubmit={handleReviewSubmit}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Write a Review</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Your Rating</Label>
+                        <div>{renderStars(reviewRating, setReviewRating)}</div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="review-comment">Your Review</Label>
+                        <Textarea 
+                          id="review-comment" 
+                          placeholder="What did you like or dislike?" 
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                        />
+                      </div>
+                      <Button type="submit">Submit Review</Button>
+                    </CardContent>
+                  </Card>
+                </form>
+              ) : (
+                 <Card className="text-center p-8">
+                  <CardTitle>Want to leave a review?</CardTitle>
+                  <CardContent className="p-0 pt-4">
+                    <p className="text-muted-foreground mb-4">You must be logged in to post a review.</p>
+                    <Button asChild>
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                  </CardContent>
+                 </Card>
+              )}
+           </div>
+
         </div>
       </div>
     </div>

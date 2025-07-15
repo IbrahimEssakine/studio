@@ -138,17 +138,19 @@ export default function Home() {
               <CarouselContent>
                 {brands.map((brand, index) => (
                   <CarouselItem key={index} className="basis-1/3 md:basis-1/4 lg:basis-1/6">
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex aspect-square items-center justify-center p-6">
-                           {brand.logo ? (
-                                <Image src={brand.logo} alt={brand.name} width={100} height={50} objectFit="contain" />
-                            ) : (
-                                <span className="text-xl font-semibold text-muted-foreground">{brand.name}</span>
-                            )}
-                        </CardContent>
-                      </Card>
-                    </div>
+                     <Link href={`/shop?brandId=${brand.id}`}>
+                        <div className="p-1">
+                          <Card className="hover:shadow-lg transition-shadow">
+                            <CardContent className="flex aspect-square items-center justify-center p-6">
+                              {brand.logo ? (
+                                    <Image src={brand.logo} alt={brand.name} width={100} height={50} objectFit="contain" />
+                                ) : (
+                                    <span className="text-xl font-semibold text-muted-foreground">{brand.name}</span>
+                                )}
+                            </CardContent>
+                          </Card>
+                        </div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
