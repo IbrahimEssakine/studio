@@ -29,13 +29,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Order, Appointment } from "@/lib/types";
 import { useOrders } from "@/context/order-context";
 import { useAppointments } from "@/context/appointment-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -87,7 +88,7 @@ export default function DashboardPage() {
     };
 
     const handleEditAppointmentClick = (appointment: Appointment) => {
-        setEditingAppointment({ ...appointment });
+        setEditingAppointment({ ...appointment, date: new Date(appointment.date) });
         setAppointmentDialogOpen(true);
     }
 
