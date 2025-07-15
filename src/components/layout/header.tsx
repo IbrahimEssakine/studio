@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Glasses, Menu, User, ShoppingCart, LogOut } from "lucide-react";
+import { Glasses, Menu, User, ShoppingCart, LogOut, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -143,6 +143,20 @@ export function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Globe className="h-5 w-5" />
+                  <span className="sr-only">Change language</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>English</DropdownMenuItem>
+                <DropdownMenuItem>Français</DropdownMenuItem>
+                <DropdownMenuItem>العربية</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             { isClient && user ? (
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
