@@ -30,17 +30,14 @@ export default function Home() {
     {
       name: "Fatima Zahra",
       quote: "Un service incroyable et des lunettes de qualité. Je suis ravie de mon achat !",
-      audioSrc: "/audio/testimonial1.mp3"
     },
     {
       name: "Youssef Alaoui",
       quote: "Le personnel était très professionnel et m'a aidé à trouver la paire parfaite. Je recommande vivement.",
-      audioSrc: "/audio/testimonial2.mp3"
     },
     {
       name: "Amine El Fassi",
       quote: "J'ai trouvé des lunettes de soleil uniques que je ne trouvais nulle part ailleurs. Merci Agharas Vision !",
-      audioSrc: "/audio/testimonial3.mp3"
     }
   ];
 
@@ -179,11 +176,8 @@ export default function Home() {
                                             <p className="mt-4 text-muted-foreground italic">"{testimonial.quote}"</p>
                                         </CardContent>
                                         <CardHeader className="pt-0">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <CardTitle className="text-lg">{testimonial.name}</CardTitle>
-                                                </div>
-                                                <audio controls src={testimonial.audioSrc} className="w-32 h-8"></audio>
+                                            <div>
+                                                <CardTitle className="text-lg">{testimonial.name}</CardTitle>
                                             </div>
                                         </CardHeader>
                                     </Card>
