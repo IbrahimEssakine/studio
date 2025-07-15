@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Star, Upload, CheckCircle, Calendar, Edit, Trash2 } from "lucide-react";
+import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -11,13 +10,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
-import { useUser } from "@/context/user-context";
 import type { Product } from "@/lib/types";
 
 const lensTypes = [
@@ -27,18 +23,14 @@ const lensTypes = [
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const { getProductById, updateProduct, deleteProduct } = useProducts();
-  const { user } = useUser();
+  const { getProductById } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const foundProduct = getProductById(params.id);
@@ -46,7 +38,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setProduct(foundProduct);
       setSelectedColor(foundProduct.colors[0]);
     }
-  }, [params, getProductById]);
+  }, [params.id, getProductById]);
 
   if (!product) {
     return <div>Loading...</div>;
@@ -75,26 +67,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     });
   };
 
-  const handleEditClick = () => {
-    setEditingProduct(product);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveChanges = () => {
-    if (editingProduct) {
-      updateProduct(editingProduct.id, editingProduct);
-      setProduct(editingProduct);
-      toast({ title: "Product Updated", description: "The product details have been saved." });
-      setEditDialogOpen(false);
-    }
-  };
-
-  const handleDelete = () => {
-    deleteProduct(product.id);
-    toast({ title: "Product Deleted", description: `${product.name} has been removed.` });
-    router.push("/shop");
-  };
-
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
@@ -113,26 +85,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           <div>
             <div className="flex justify-between items-start">
               <span className="text-sm font-medium text-primary">{product.category}</span>
-              {user?.role === 'admin' && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={handleEditClick}><Edit className="w-4 h-4" /></Button>
-                   <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon"><Trash2 className="w-4 h-4" /></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>This will permanently delete the product. This action cannot be undone.</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                          </AlertDialogFooter>
-                      </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
             </div>
             <h1 className="text-4xl md:text-5xl font-headline font-bold mt-1">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
@@ -247,31 +199,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </Card>
         </div>
       </div>
-       <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
-          {editingProduct && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name</Label>
-                <Input id="name" value={editingProduct.name} onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price (DH)</Label>
-                <Input id="price" type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || 0})} />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" value={editingProduct.description} onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})} />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-            <Button onClick={handleSaveChanges}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
