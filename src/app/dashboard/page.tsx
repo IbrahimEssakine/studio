@@ -2,7 +2,7 @@
 "use client";
 
 import { MoreHorizontal, PlusCircle, ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -1081,5 +1081,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
