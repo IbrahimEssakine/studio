@@ -60,10 +60,10 @@ const appointmentStatuses: Appointment['status'][] = ["Pending", "Confirmed", "C
 const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses"];
 const userRoles: User['role'][] = ["customer", "admin"];
 
-const initialNewOrderState: Omit<Order, 'id' | 'orderDate' | 'items'> = { customerName: '', status: 'Pending', total: 0, shippingAddress: { name: '', email: '' }};
+const initialNewOrderState: Omit<Order, 'id' | 'orderDate' | 'items' | 'details'> = { customerName: '', status: 'Pending', total: 0, shippingAddress: { email: '', name: '', phone: '', address: '' }};
 const initialNewAppointmentState: Omit<Appointment, 'id' | 'status'> = { name: '', email: '', phone: '', date: new Date(), time: '' };
-const initialNewProductState: Omit<Product, 'id' | 'rating' | 'reviews'> = { name: '', price: 0, category: 'Eyeglasses', image: 'https://placehold.co/600x400.png', colors: [], description: '' };
-const initialNewUserState: Omit<User, 'id' | 'role'> = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '' };
+const initialNewProductState: Omit<Product, 'id'> = { name: '', price: 0, category: 'Eyeglasses', image: 'https://placehold.co/600x400.png', colors: [], rating: 0, reviews: 0, description: '' };
+const initialNewUserState: Omit<User, 'id'> = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '', role: 'customer' };
 
 
 export default function DashboardPage() {
@@ -191,14 +191,14 @@ export default function DashboardPage() {
     }
 
     const handleAddProduct = () => {
-        addProduct({ ...newProduct, rating: 0, reviews: 0 });
+        addProduct(newProduct);
         toast({ title: "Product Added", description: `Product ${newProduct.name} has been created.` });
         setAddProductDialogOpen(false);
         setNewProduct(initialNewProductState);
     }
 
     const handleAddUser = () => {
-        const result = addUser({ ...newUser, role: 'customer' });
+        const result = addUser({ ...newUser });
          if (result.success) {
             toast({ title: "User Added", description: `User ${newUser.firstName} has been created.` });
             setAddUserDialogOpen(false);
@@ -715,24 +715,34 @@ export default function DashboardPage() {
         
         {/* Add Order Dialog */}
         <Dialog open={isAddOrderDialogOpen} onOpenChange={setAddOrderDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader><DialogTitle>Add New Order</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="new-order-customerName">Customer Name</Label>
-                        <Input id="new-order-customerName" value={newOrder.customerName} onChange={(e) => setNewOrder({...newOrder, customerName: e.target.value})} />
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-order-customerName" className="text-right">Customer Name</Label>
+                        <Input id="new-order-customerName" value={newOrder.customerName} onChange={(e) => setNewOrder({...newOrder, customerName: e.target.value, shippingAddress: { ...newOrder.shippingAddress, name: e.target.value }})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                         <Label htmlFor="new-order-status">Status</Label>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-order-phone" className="text-right">Phone</Label>
+                        <Input id="new-order-phone" value={newOrder.shippingAddress?.phone || ''} onChange={(e) => setNewOrder({...newOrder, shippingAddress: { ...newOrder.shippingAddress, phone: e.target.value }})} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-order-address" className="text-right">Address</Label>
+                        <Input id="new-order-address" value={newOrder.shippingAddress?.address || ''} onChange={(e) => setNewOrder({...newOrder, shippingAddress: { ...newOrder.shippingAddress, address: e.target.value }})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-order-status" className="text-right">Status</Label>
                          <Select value={newOrder.status} onValueChange={(value) => setNewOrder({...newOrder, status: value as Order['status']})}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
                             <SelectContent>{orderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
                          </Select>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-order-total">Total</Label>
-                        <Input id="new-order-total" type="number" value={newOrder.total} onChange={(e) => setNewOrder({...newOrder, total: parseFloat(e.target.value) || 0})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-order-total" className="text-right">Total</Label>
+                        <Input id="new-order-total" type="number" value={newOrder.total} onChange={(e) => setNewOrder({...newOrder, total: parseFloat(e.target.value) || 0})} className="col-span-3" />
                     </div>
+                    {/* Simplified product adding for now */}
+                     <p className="text-sm text-center text-muted-foreground pt-2">Product details for new orders are managed at checkout.</p>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
@@ -743,26 +753,26 @@ export default function DashboardPage() {
 
         {/* Add Appointment Dialog */}
         <Dialog open={isAddAppointmentDialogOpen} onOpenChange={setAddAppointmentDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader><DialogTitle>Add New Appointment</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="new-apt-name">Name</Label>
-                        <Input id="new-apt-name" value={newAppointment.name} onChange={(e) => setNewAppointment({...newAppointment, name: e.target.value})} />
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-apt-name" className="text-right">Name</Label>
+                        <Input id="new-apt-name" value={newAppointment.name} onChange={(e) => setNewAppointment({...newAppointment, name: e.target.value})} className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-apt-email">Email</Label>
-                        <Input id="new-apt-email" type="email" value={newAppointment.email} onChange={(e) => setNewAppointment({...newAppointment, email: e.target.value})} />
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-apt-email" className="text-right">Email</Label>
+                        <Input id="new-apt-email" type="email" value={newAppointment.email} onChange={(e) => setNewAppointment({...newAppointment, email: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-apt-phone">Phone</Label>
-                        <Input id="new-apt-phone" value={newAppointment.phone} onChange={(e) => setNewAppointment({...newAppointment, phone: e.target.value})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-apt-phone" className="text-right">Phone</Label>
+                        <Input id="new-apt-phone" value={newAppointment.phone} onChange={(e) => setNewAppointment({...newAppointment, phone: e.target.value})} className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label>Date</Label>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right">Date</Label>
                          <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !newAppointment.date && "text-muted-foreground")}>
+                                <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal col-span-3", !newAppointment.date && "text-muted-foreground")}>
                                     <CalendarIcon className="mr-2 h-4 w-4" />
                                     {newAppointment.date ? format(newAppointment.date, "PPP") : <span>Pick a date</span>}
                                 </Button>
@@ -770,10 +780,10 @@ export default function DashboardPage() {
                             <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newAppointment.date} onSelect={(date) => date && setNewAppointment({...newAppointment, date: date})} initialFocus /></PopoverContent>
                         </Popover>
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-apt-time">Time</Label>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-apt-time" className="text-right">Time</Label>
                          <Select value={newAppointment.time} onValueChange={(value) => setNewAppointment({...newAppointment, time: value})}>
-                            <SelectTrigger><SelectValue placeholder="Select a time" /></SelectTrigger>
+                            <SelectTrigger className="col-span-3"><SelectValue placeholder="Select a time" /></SelectTrigger>
                             <SelectContent>{availableTimes.map(time => <SelectItem key={time} value={time}>{time}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
@@ -787,37 +797,43 @@ export default function DashboardPage() {
         
         {/* Add Product Dialog */}
         <Dialog open={isAddProductDialogOpen} onOpenChange={setAddProductDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="new-prod-name">Product Name</Label>
-                        <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-name" className="text-right">Name</Label>
+                        <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-prod-desc">Description</Label>
-                        <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-desc" className="text-right">Description</Label>
+                        <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-prod-image">Image URL</Label>
-                        <Input id="new-prod-image" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-image" className="text-right">Image URL</Label>
+                        <Input id="new-prod-image" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="new-prod-price">Price</Label>
-                            <Input id="new-prod-price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="new-prod-category">Category</Label>
-                            <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value as Product['category']})}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>{productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
-                            </Select>
-                        </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-price" className="text-right">Price</Label>
+                        <Input id="new-prod-price" type="number" value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})} className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-prod-colors">Colors (comma separated)</Label>
-                        <Input id="new-prod-colors" value={newProduct.colors.join(', ')} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value.split(',').map(c => c.trim())})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-category" className="text-right">Category</Label>
+                        <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value as Product['category']})}>
+                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
+                            <SelectContent>{productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-colors" className="text-right">Colors</Label>
+                        <Input id="new-prod-colors" placeholder="e.g. Black, Red, Blue" value={newProduct.colors.join(', ')} onChange={(e) => setNewProduct({...newProduct, colors: e.target.value.split(',').map(c => c.trim())})} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-rating" className="text-right">Rating</Label>
+                        <Input id="new-prod-rating" type="number" step="0.1" max="5" min="0" value={newProduct.rating} onChange={(e) => setNewProduct({...newProduct, rating: parseFloat(e.target.value) || 0})} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-reviews" className="text-right">Reviews</Label>
+                        <Input id="new-prod-reviews" type="number" value={newProduct.reviews} onChange={(e) => setNewProduct({...newProduct, reviews: parseInt(e.target.value) || 0})} className="col-span-3" />
                     </div>
                 </div>
                 <DialogFooter>
@@ -829,31 +845,29 @@ export default function DashboardPage() {
 
         {/* Add User Dialog */}
         <Dialog open={isAddUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader><DialogTitle>Add New User</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                         <div className="space-y-2">
-                            <Label htmlFor="new-user-firstname">First Name</Label>
-                            <Input id="new-user-firstname" value={newUser.firstName} onChange={(e) => setNewUser({...newUser, firstName: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="new-user-lastname">Last Name</Label>
-                            <Input id="new-user-lastname" value={newUser.lastName} onChange={(e) => setNewUser({...newUser, lastName: e.target.value})} />
-                        </div>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                         <Label htmlFor="new-user-firstname" className="text-right">First Name</Label>
+                         <Input id="new-user-firstname" value={newUser.firstName} onChange={(e) => setNewUser({...newUser, firstName: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-user-email">Email</Label>
-                        <Input id="new-user-email" type="email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-user-lastname" className="text-right">Last Name</Label>
+                        <Input id="new-user-lastname" value={newUser.lastName} onChange={(e) => setNewUser({...newUser, lastName: e.target.value})} className="col-span-3" />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-user-password">Password</Label>
-                        <Input id="new-user-password" type="password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} />
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-user-email" className="text-right">Email</Label>
+                        <Input id="new-user-email" type="email" value={newUser.email} onChange={(e) => setNewUser({...newUser, email: e.target.value})} className="col-span-3" />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-user-role">Role</Label>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-user-password" className="text-right">Password</Label>
+                        <Input id="new-user-password" type="password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-user-role" className="text-right">Role</Label>
                         <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value as User['role']})}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
                             <SelectContent>{userRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
