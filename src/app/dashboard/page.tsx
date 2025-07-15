@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert, XIcon } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, XIcon, View } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -39,7 +41,7 @@ import { useProducts } from "@/context/product-context";
 import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,6 +54,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 
 const availableTimes = [
@@ -93,6 +97,9 @@ export default function DashboardPage() {
     const [isAddAppointmentDialogOpen, setAddAppointmentDialogOpen] = useState(false);
     const [isAddProductDialogOpen, setAddProductDialogOpen] = useState(false);
     const [isAddUserDialogOpen, setAddUserDialogOpen] = useState(false);
+    
+    const [isViewDialogOpen, setViewDialogOpen] = useState(false);
+    const [viewingItem, setViewingItem] = useState<{type: string, data: any} | null>(null);
 
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -144,6 +151,11 @@ export default function DashboardPage() {
             default:
                 return 'outline';
         }
+    };
+    
+    const handleViewClick = (type: string, data: any) => {
+        setViewingItem({ type, data });
+        setViewDialogOpen(true);
     };
 
     const handleAddNewClick = () => {
@@ -409,8 +421,10 @@ export default function DashboardPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleViewClick('order', order)}>View</DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleEditOrderClick(order)}>Edit</DropdownMenuItem>
-                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                            <DropdownMenuSeparator />
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                     <AlertDialogContent>
@@ -477,12 +491,14 @@ export default function DashboardPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleViewClick('appointment', apt)}>View</DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleEditAppointmentClick(apt)}>Edit</DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => {
                                                                 updateAppointment(apt.id, { ...apt, status: 'Confirmed' });
                                                                 toast({ title: "Appointment Confirmed", description: `Appointment for ${apt.name} has been confirmed.`})
                                                             }}>Confirm</DropdownMenuItem>
-                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                            <DropdownMenuSeparator />
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                      <AlertDialogContent>
@@ -533,8 +549,10 @@ export default function DashboardPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                         <DropdownMenuItem onClick={() => handleViewClick('product', product)}>View</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleEditProductClick(product)}>Edit</DropdownMenuItem>
-                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                        <DropdownMenuSeparator />
+                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                                  <AlertDialogContent>
@@ -594,8 +612,10 @@ export default function DashboardPage() {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => handleViewClick('product', product)}>View</DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleEditProductClick(product)}>Edit</DropdownMenuItem>
-                                                                <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                                <DropdownMenuSeparator />
+                                                                <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
                                                         <AlertDialogContent>
@@ -647,8 +667,10 @@ export default function DashboardPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => handleViewClick('user', user)}>View</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleEditUserClick(user)}>Edit</DropdownMenuItem>
-                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                        <DropdownMenuSeparator />
+                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                                 <AlertDialogContent>
@@ -708,8 +730,10 @@ export default function DashboardPage() {
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => handleViewClick('user', user)}>View</DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleEditUserClick(user)}>Edit</DropdownMenuItem>
-                                                                <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                                <DropdownMenuSeparator />
+                                                                <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">Delete</DropdownMenuItem></AlertDialogTrigger>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
                                                         <AlertDialogContent>
@@ -1139,8 +1163,166 @@ export default function DashboardPage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        
+        {/* View Details Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setViewDialogOpen}>
+            <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+                {viewingItem && (
+                    <>
+                        <DialogHeader>
+                            <DialogTitle>Details for {viewingItem.type.charAt(0).toUpperCase() + viewingItem.type.slice(1)}</DialogTitle>
+                            <DialogDescription>
+                                Viewing full details for {viewingItem.data.id || viewingItem.data.name}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            {viewingItem.type === 'order' && <OrderDetailsView order={viewingItem.data} />}
+                            {viewingItem.type === 'appointment' && <AppointmentDetailsView appointment={viewingItem.data} />}
+                            {viewingItem.type === 'product' && <ProductDetailsView product={viewingItem.data} />}
+                            {viewingItem.type === 'user' && <UserDetailsView user={viewingItem.data} />}
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button>Close</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </>
+                )}
+            </DialogContent>
+        </Dialog>
 
 
     </div>
   );
+}
+
+
+function OrderDetailsView({ order }: { order: Order }) {
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Order Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div><p className="text-muted-foreground">Order ID</p><p className="font-medium">{order.id}</p></div>
+                        <div><p className="text-muted-foreground">Order Date</p><p className="font-medium">{order.orderDate}</p></div>
+                        <div><p className="text-muted-foreground">Customer</p><p className="font-medium">{order.customerName}</p></div>
+                        <div><p className="text-muted-foreground">Status</p><p><Badge>{order.status}</Badge></p></div>
+                        <div><p className="text-muted-foreground">Total Items</p><p className="font-medium">{order.items}</p></div>
+                        <div><p className="text-muted-foreground">Total Amount</p><p className="font-bold text-base">{order.total.toFixed(2)} DH</p></div>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader><CardTitle>Shipping Address</CardTitle></CardHeader>
+                <CardContent className="text-sm space-y-2">
+                    <p className="font-medium">{order.shippingAddress?.name}</p>
+                    <p>{order.shippingAddress?.address}</p>
+                    <p>{order.shippingAddress?.city}, {order.shippingAddress?.zip}</p>
+                    <p>Email: {order.shippingAddress?.email}</p>
+                    {order.shippingAddress?.phone && <p>Phone: {order.shippingAddress?.phone}</p>}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader><CardTitle>Items in Order</CardTitle></CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Product</TableHead>
+                                <TableHead>Details</TableHead>
+                                <TableHead>Qty</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {order.details?.map((item) => (
+                                <TableRow key={`${item.id}-${item.color}-${item.lensType}`}>
+                                    <TableCell className="flex items-center gap-2">
+                                        <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md" />
+                                        <span>{item.name}</span>
+                                    </TableCell>
+                                    <TableCell>{item.color}, {item.lensType}</TableCell>
+                                    <TableCell>{item.quantity}</TableCell>
+                                    <TableCell className="text-right">{item.price.toFixed(2)} DH</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+function AppointmentDetailsView({ appointment }: { appointment: Appointment }) {
+    return (
+        <Card>
+            <CardHeader><CardTitle>Appointment Details</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-muted-foreground">Appointment ID</p><p className="font-medium">{appointment.id}</p></div>
+                <div><p className="text-muted-foreground">Status</p><p><Badge>{appointment.status}</Badge></p></div>
+                <div><p className="text-muted-foreground">Name</p><p className="font-medium">{appointment.name}</p></div>
+                <div><p className="text-muted-foreground">Date & Time</p><p className="font-medium">{format(new Date(appointment.date), "PPP")} at {appointment.time}</p></div>
+                <div><p className="text-muted-foreground">Email</p><p className="font-medium">{appointment.email}</p></div>
+                <div><p className="text-muted-foreground">Phone</p><p className="font-medium">{appointment.phone}</p></div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function ProductDetailsView({ product }: { product: Product }) {
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardContent className="pt-6 flex flex-col sm:flex-row gap-6 items-start">
+                    <Image src={product.image} alt={product.name} width={200} height={200} className="rounded-lg border" />
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-bold">{product.name}</h3>
+                        <p className="text-sm text-muted-foreground">{product.id}</p>
+                        <p className="text-lg font-semibold">{product.price.toFixed(2)} DH</p>
+                        <p><Badge variant="secondary">{product.category}</Badge></p>
+                        <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                            <span className="font-medium">{product.rating}</span>
+                            <span className="text-sm text-muted-foreground">({product.reviews} reviews)</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader><CardTitle>Details</CardTitle></CardHeader>
+                <CardContent>
+                    <p className="text-sm mb-4">{product.description}</p>
+                    <Separator />
+                    <div className="mt-4">
+                        <p className="font-semibold">Colors:</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {product.colors.map(color => <Badge key={color} variant="outline">{color}</Badge>)}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+function UserDetailsView({ user }: { user: User }) {
+    return (
+        <Card>
+            <CardHeader><CardTitle>User Details</CardTitle></CardHeader>
+             <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-muted-foreground">User ID</p><p className="font-medium">{user.id}</p></div>
+                <div><p className="text-muted-foreground">Role</p><p><Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>{user.role}</Badge></p></div>
+                <div><p className="text-muted-foreground">First Name</p><p className="font-medium">{user.firstName}</p></div>
+                <div><p className="text-muted-foreground">Last Name</p><p className="font-medium">{user.lastName}</p></div>
+                <div className="col-span-2"><p className="text-muted-foreground">Email</p><p className="font-medium">{user.email}</p></div>
+                <div><p className="text-muted-foreground">Phone</p><p className="font-medium">{user.phone || 'N/A'}</p></div>
+                <div><p className="text-muted-foreground">Gender</p><p className="font-medium capitalize">{user.gender || 'N/A'}</p></div>
+                <div className="col-span-2"><p className="text-muted-foreground">Address</p><p className="font-medium">{user.address}, {user.city}, {user.zip}</p></div>
+            </CardContent>
+        </Card>
+    );
 }

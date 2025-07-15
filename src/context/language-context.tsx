@@ -17,15 +17,14 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('fr'); // Default to French
   const [dictionary, setDictionary] = useState<Dictionary>(dictionaries.fr);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
+    // This effect runs once on the client to get the stored language
     const storedLang = localStorage.getItem('language') as Language | null;
     if (storedLang && dictionaries[storedLang]) {
       setLanguageState(storedLang);
       setDictionary(dictionaries[storedLang]);
     }
-    setIsInitialLoad(false);
   }, []);
 
   const setLanguage = useCallback((lang: Language) => {
@@ -37,11 +36,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   useEffect(() => {
-    if (!isInitialLoad) {
-        document.documentElement.lang = language;
-        document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    }
-  }, [language, isInitialLoad]);
+    // This effect runs on the client whenever the language changes
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, dictionary }}>

@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Order } from '@/lib/types';
-import { sendNewOrderEmail, sendOrderStatusUpdateEmail } from '@/services/email-service';
+import { sendNewOrderEmail, sendOrderStatusUpdateEmail, sendAdminNewOrderNotification } from '@/services/email-service';
 
 // Mock data
 const mockOrders: Order[] = [
@@ -60,7 +61,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         items: order.details?.reduce((acc, item) => acc + item.quantity, 0) || 0,
     };
     setOrders(prevOrders => [newOrder, ...prevOrders]);
+    // Send emails
     sendNewOrderEmail(newOrder);
+    sendAdminNewOrderNotification(newOrder);
   };
 
   const updateOrder = (orderId: string, updatedOrder: Partial<Order>) => {

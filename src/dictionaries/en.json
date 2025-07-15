@@ -119,6 +119,7 @@
     },
     "total": "Total:",
     "addToCart": "Add to Cart",
+    "contactOnWhatsApp": "Contact us on WhatsApp",
     "toast": {
       "title": "Added to Cart",
       "description": "{productName} has been added to your cart."

@@ -1,8 +1,9 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Appointment } from '@/lib/types';
-import { sendNewAppointmentEmail, sendAppointmentStatusUpdateEmail } from '@/services/email-service';
+import { sendNewAppointmentEmail, sendAppointmentStatusUpdateEmail, sendAdminNewAppointmentNotification } from '@/services/email-service';
 
 // Mock data
 const mockAppointments: Appointment[] = [
@@ -58,7 +59,9 @@ export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
       status: "Pending",
     };
     setAppointments(prevAppointments => [newAppointment, ...prevAppointments]);
+    // Send emails
     sendNewAppointmentEmail(newAppointment);
+    sendAdminNewAppointmentNotification(newAppointment);
   };
 
   const updateAppointment = (appointmentId: string, updatedAppointment: Partial<Appointment>) => {

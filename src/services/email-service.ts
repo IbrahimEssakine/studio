@@ -1,7 +1,8 @@
 
+
 "use server"
 
-import type { Order, Appointment } from "@/lib/types";
+import type { Order, Appointment, User } from "@/lib/types";
 import { format } from "date-fns";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
@@ -13,6 +14,8 @@ dotenv.config();
 // This service uses Nodemailer to send emails via a Gmail account.
 // It reads credentials securely from environment variables.
 // ===================================================================================
+
+const ADMIN_EMAIL = 'purga2ryx@gmail.com';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -47,6 +50,8 @@ const sendEmail = async (to: string, subject: string, html: string) => {
         console.error("Failed to send email:", error);
     }
 };
+
+// --- Customer Facing Emails ---
 
 export const sendNewOrderEmail = async (order: Order) => {
     const to = order.shippingAddress?.email;
@@ -108,7 +113,7 @@ export const sendAppointmentStatusUpdateEmail = async (appointment: Appointment)
     const subject = `🗓️ Your Agharas Vision Appointment has been ${appointment.status}`;
     const body = `
         <p>Hi ${appointment.name},</p>
-        <p>This is a notification that your appointment for ${format(appointment.date, "PPP")} at ${appointment.time} has been <b>${appointment.status}</b>.</p>
+        <p>This is a notification that your appointment for ${format(new Date(appointment.date), "PPP")} at ${appointment.time} has been <b>${appointment.status}</b>.</p>
         <p>If you have any questions, please contact us.</p>
         <br>
         <p>Thanks,</p>
@@ -132,3 +137,78 @@ export const sendPasswordResetEmail = async (email: string) => {
     `;
     await sendEmail(email, subject, body);
 };
+
+
+// --- Admin Notification Emails ---
+
+export const sendAdminNewOrderNotification = async (order: Order) => {
+    const subject = `🔔 New Order Notification: #${order.id}`;
+    const itemsHtml = order.details?.map(item => 
+        `<li>${item.quantity}x ${item.name} (${item.color}, ${item.lensType}) - ${item.price.toFixed(2)} DH</li>`
+    ).join('') || '<li>No item details available.</li>';
+    
+    const body = `
+        <h1>New Order Received!</h1>
+        <p>A new order has been placed on your website.</p>
+        
+        <h2>Order Details</h2>
+        <ul>
+            <li><b>Order ID:</b> ${order.id}</li>
+            <li><b>Customer Name:</b> ${order.customerName}</li>
+            <li><b>Order Date:</b> ${order.orderDate}</li>
+            <li><b>Total:</b> ${order.total.toFixed(2)} DH</li>
+        </ul>
+
+        <h2>Shipping Information</h2>
+        <ul>
+            <li><b>Name:</b> ${order.shippingAddress?.name}</li>
+            <li><b>Email:</b> ${order.shippingAddress?.email}</li>
+            <li><b>Phone:</b> ${order.shippingAddress?.phone || 'N/A'}</li>
+            <li><b>Address:</b> ${order.shippingAddress?.address}, ${order.shippingAddress?.city}, ${order.shippingAddress?.zip}</li>
+        </ul>
+        
+        <h2>Items</h2>
+        <ul>
+            ${itemsHtml}
+        </ul>
+    `;
+    await sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+export const sendAdminNewAppointmentNotification = async (appointment: Appointment) => {
+    const subject = `🔔 New Appointment Request from ${appointment.name}`;
+    const body = `
+        <h1>New Appointment Request!</h1>
+        <p>A new appointment has been requested on your website.</p>
+        
+        <h2>Appointment Details</h2>
+        <ul>
+            <li><b>Name:</b> ${appointment.name}</li>
+            <li><b>Email:</b> ${appointment.email}</li>
+            <li><b>Phone:</b> ${appointment.phone}</li>
+            <li><b>Requested Date:</b> ${format(new Date(appointment.date), "PPP")}</li>
+            <li><b>Requested Time:</b> ${appointment.time}</li>
+        </ul>
+        
+        <p>Please log in to the dashboard to confirm or manage this appointment.</p>
+    `;
+    await sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+export const sendAdminNewUserRegisteredNotification = async (user: User) => {
+    const subject = `🔔 New User Registration: ${user.firstName} ${user.lastName}`;
+    const body = `
+        <h1>New User Registered!</h1>
+        <p>A new user has created an account on your website.</p>
+        
+        <h2>User Details</h2>
+        <ul>
+            <li><b>Name:</b> ${user.firstName} ${user.lastName}</li>
+            <li><b>Email:</b> ${user.email}</li>
+            <li><b>Phone:</b> ${user.phone || 'N/A'}</li>
+        </ul>
+        
+        <p>You can view their full details in the admin dashboard.</p>
+    `;
+    await sendEmail(ADMIN_EMAIL, subject, body);
+}

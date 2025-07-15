@@ -1,8 +1,10 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { sendAdminNewUserRegisteredNotification } from '@/services/email-service';
 
 // Mock user data for demonstration
 const mockUsers: User[] = [
@@ -132,8 +134,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newUser: User = {
         ...userData,
         id: `USER${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        role: userData.role || 'customer'
     };
     setUsers(prevUsers => [...prevUsers, newUser]);
+    
+    // Send admin notification for new user registration (if not added via dashboard)
+    if (newUser.role === 'customer') {
+        sendAdminNewUserRegisteredNotification(newUser);
+    }
+
     return { success: true, message: 'Account created successfully.' };
   };
 
