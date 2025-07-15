@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye } from "lucide-react";
@@ -538,15 +537,18 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
                     <DropdownMenuSeparator />
                     {isDeletable && (
                         <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
                         </AlertDialogTrigger>
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <AlertDialogContent>
                 <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></Footer>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     );
 }
+
+
+    
