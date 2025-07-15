@@ -10,6 +10,12 @@ export interface Product {
   description?: string;
 }
 
+export interface CartItem extends Product {
+    quantity: number;
+    color: string;
+    lensType: string;
+}
+
 export interface Order {
   id: string;
   customerName: string;

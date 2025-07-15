@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Glasses, Menu, User } from "lucide-react";
+import { Glasses, Menu, User, ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { useCart } from "@/context/cart-context";
+import { Badge } from "@/components/ui/badge";
 
 const navLinks = [
   { href: "/shop", label: "Shop" },
@@ -22,6 +24,14 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const { cart } = useCart();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const NavLink = ({
     href,
@@ -121,6 +131,17 @@ export function Header() {
               <Link href="/login">
                 <User className="h-5 w-5" />
                 <span className="sr-only">Login / Dashboard</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className="relative">
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                {isClient && cartItemCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0 text-xs">
+                    {cartItemCount}
+                  </Badge>
+                )}
+                <span className="sr-only">Shopping Cart</span>
               </Link>
             </Button>
           </nav>

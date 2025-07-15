@@ -11,8 +11,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { useCart } from "@/context/cart-context";
+import { useToast } from "@/hooks/use-toast";
+import type { Product } from "@/lib/types";
 
-const product = {
+const productData: Product = {
   id: "2",
   name: "Modern Wayfarer",
   price: 130,
@@ -22,12 +25,6 @@ const product = {
   rating: 4.8,
   reviews: 250,
   description: "A modern take on a timeless classic. The Wayfarer's iconic shape is updated with a sleeker profile and lightweight materials, offering both comfort and style. Perfect for any occasion, these frames are a versatile addition to any wardrobe.",
-  details: [
-    "Handcrafted from premium acetate",
-    "Durable 5-barrel hinges",
-    "Includes protective case and cleaning cloth",
-    "Unisex design"
-  ]
 };
 
 const lensTypes = [
@@ -37,6 +34,9 @@ const lensTypes = [
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  const [product] = useState(productData); // In a real app, you'd fetch this
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
@@ -48,6 +48,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setPrescriptionFile(event.target.files[0]);
     }
   };
+
+  const handleAddToCart = () => {
+    const cartItem = {
+        ...product,
+        price: totalPrice,
+        color: selectedColor,
+        lensType: selectedLens.name,
+        quantity: 1,
+    };
+    addToCart(cartItem);
+    toast({
+        title: "Added to Cart",
+        description: `${product.name} has been added to your cart.`,
+    });
+  }
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
@@ -173,19 +188,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <CardContent className="p-6">
                 <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold font-headline">Total: ${totalPrice.toFixed(2)}</span>
-                    <Button size="lg">Add to Cart</Button>
+                    <Button size="lg" onClick={handleAddToCart}>Add to Cart</Button>
                 </div>
             </CardContent>
           </Card>
-
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Product Details</h3>
-            <ul className="list-disc list-inside text-muted-foreground space-y-1">
-              {product.details.map((detail, i) => (
-                <li key={i}>{detail}</li>
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
     </div>

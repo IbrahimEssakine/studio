@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
 import { Glasses } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -35,16 +37,20 @@ export default function LoginPage() {
   });
 
   function onSubmit(values: z.infer<typeof loginSchema>) {
-    console.log(values);
-    // Here you would typically handle authentication
-    toast({
-        title: "Login Successful",
-        description: "Welcome back!",
-    });
-
-    // On successful login, you would redirect
-    // For now, we'll just log and clear the form
-    form.reset();
+    if (values.email === "purga2ryx@gmail.com" && values.password === "admin123") {
+        toast({
+            title: "Admin Login Successful",
+            description: "Redirecting to dashboard...",
+        });
+        router.push("/dashboard");
+    } else {
+        console.log(values);
+        toast({
+            title: "Login Successful",
+            description: "Welcome back!",
+        });
+        form.reset();
+    }
   }
 
   return (
