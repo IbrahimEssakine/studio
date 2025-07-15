@@ -27,5 +27,20 @@
     "advancedLensDesc": "Experience superior vision with our anti-reflective, scratch-resistant, and UV-blocking lenses.",
     "expertCraftsmanship": "Expert Craftsmanship",
     "expertCraftsmanshipDesc": "Each pair is meticulously assembled and inspected by our skilled opticians to ensure a perfect fit."
+  },
+  "footer": {
+    "tagline": "Crafting clear vision with style and precision.",
+    "shop": "Shop",
+    "eyeglasses": "Eyeglasses",
+    "sunglasses": "Sunglasses",
+    "contactLenses": "Contact Lenses",
+    "about": "About",
+    "ourStory": "Our Story",
+    "appointments": "Appointments",
+    "myAccount": "My Account",
+    "contact": "Contact",
+    "phone": "Phone",
+    "whatsapp": "Whatsapp",
+    "copyright": "© {year} Agharas Vision. All rights reserved."
   }
 }

@@ -1,7 +1,10 @@
 
+"use client";
+
 import Link from "next/link";
 import { Glasses, Facebook, Instagram } from "lucide-react";
 import { Button } from "../ui/button";
+import { useLanguage } from "@/context/language-context";
 
 const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -11,6 +14,9 @@ const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export function Footer() {
+  const { dictionary } = useLanguage();
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -21,38 +27,38 @@ export function Footer() {
               <span className="font-bold text-lg font-headline">Agharas Vision</span>
             </Link>
             <p className="text-muted-foreground text-sm">
-              Crafting clear vision with style and precision.
+              {dictionary.footer.tagline}
             </p>
           </div>
           <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase">
-                Shop
+                {dictionary.footer.shop}
               </h3>
               <ul className="mt-4 space-y-2">
-                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Eyeglasses</Link></li>
-                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Sunglasses</Link></li>
-                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Contact Lenses</Link></li>
+                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.eyeglasses}</Link></li>
+                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.sunglasses}</Link></li>
+                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.contactLenses}</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase">
-                About
+                {dictionary.footer.about}
               </h3>
               <ul className="mt-4 space-y-2">
-                <li><Link href="/about" className="text-sm text-muted-foreground hover:text-primary">Our Story</Link></li>
-                <li><Link href="/book-appointment" className="text-sm text-muted-foreground hover:text-primary">Appointments</Link></li>
-                <li><Link href="/login" className="text-sm text-muted-foreground hover:text-primary">My Account</Link></li>
+                <li><Link href="/about" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.ourStory}</Link></li>
+                <li><Link href="/book-appointment" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.appointments}</Link></li>
+                <li><Link href="/login" className="text-sm text-muted-foreground hover:text-primary">{dictionary.footer.myAccount}</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase">
-                Contact
+                {dictionary.footer.contact}
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <li>N° 3, Imm 08, Lot 4, Al Kheir, Cité Essalam, Agadir, Morocco</li>
-                <li>Phone: +212 525-270883</li>
-                <li>Whatsapp: +212 628-889950</li>
+                <li>{dictionary.footer.phone}: +212 525-270883</li>
+                <li>{dictionary.footer.whatsapp}: +212 628-889950</li>
                 <li>agharas.vision@gmail.com</li>
               </ul>
             </div>
@@ -60,7 +66,7 @@ export function Footer() {
         </div>
         <div className="mt-8 border-t pt-8 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Agharas Vision. All rights reserved.
+            {dictionary.footer.copyright.replace('{year}', currentYear.toString())}
           </p>
           <div className="flex items-center space-x-2 mt-4 sm:mt-0">
             <Button variant="ghost" size="icon" asChild>

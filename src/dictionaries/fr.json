@@ -27,5 +27,20 @@
     "advancedLensDesc": "Faites l'expérience d'une vision supérieure avec nos verres antireflets, résistants aux rayures et anti-UV.",
     "expertCraftsmanship": "Savoir-faire d'Expert",
     "expertCraftsmanshipDesc": "Chaque paire est méticuleusement assemblée et inspectée par nos opticiens qualifiés pour garantir un ajustement parfait."
+  },
+  "footer": {
+    "tagline": "Une vision claire avec style et précision.",
+    "shop": "Boutique",
+    "eyeglasses": "Lunettes de vue",
+    "sunglasses": "Lunettes de soleil",
+    "contactLenses": "Lentilles de contact",
+    "about": "À Propos",
+    "ourStory": "Notre Histoire",
+    "appointments": "Rendez-vous",
+    "myAccount": "Mon Compte",
+    "contact": "Contact",
+    "phone": "Téléphone",
+    "whatsapp": "Whatsapp",
+    "copyright": "© {year} Agharas Vision. Tous droits réservés."
   }
 }
