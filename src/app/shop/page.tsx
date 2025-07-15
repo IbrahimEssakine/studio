@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -17,19 +18,36 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useProducts } from "@/context/product-context";
+import { Product } from "@/lib/types";
 
-const categories = ["Sunglasses", "Eyeglasses", "Contact Lens"];
+const categories: Product['category'][] = ["Sunglasses", "Eyeglasses", "Contact Lens", "Clip 2 in 1"];
 const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"];
+const genders = ["Homme", "Femme", "Unisex"];
 
 export default function ShopPage() {
   const { products: allProducts } = useProducts();
   const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedGender, setSelectedGender] = useState<string>('all');
+  const [selectedColor, setSelectedColor] = useState<string>('all');
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(
-      (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
-    );
-  }, [allProducts, priceRange]);
+    return allProducts.filter((product) => {
+      const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1];
+      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+      const genderMatch = selectedGender === 'all' || product.gender === selectedGender;
+      const colorMatch = selectedColor === 'all' || product.colors.includes(selectedColor);
+      return priceMatch && categoryMatch && genderMatch && colorMatch;
+    });
+  }, [allProducts, priceRange, selectedCategories, selectedGender, selectedColor]);
 
   const Filters = () => (
     <Card>
@@ -42,11 +60,26 @@ export default function ShopPage() {
           <div className="space-y-2">
             {categories.map((category) => (
               <div key={category} className="flex items-center space-x-2">
-                <Checkbox id={category.toLowerCase()} />
+                <Checkbox id={category.toLowerCase()} onCheckedChange={() => handleCategoryChange(category)} checked={selectedCategories.includes(category)} />
                 <Label htmlFor={category.toLowerCase()}>{category}</Label>
               </div>
             ))}
           </div>
+        </div>
+        <div>
+          <h3 className="font-semibold mb-3">Gender</h3>
+          <RadioGroup value={selectedGender} onValueChange={setSelectedGender}>
+             <div className="flex items-center space-x-2">
+              <RadioGroupItem value="all" id="gender-all" />
+              <Label htmlFor="gender-all">All</Label>
+            </div>
+            {genders.map((gender) => (
+              <div key={gender} className="flex items-center space-x-2">
+                <RadioGroupItem value={gender} id={`gender-${gender.toLowerCase()}`} />
+                <Label htmlFor={`gender-${gender.toLowerCase()}`}>{gender}</Label>
+              </div>
+            ))}
+          </RadioGroup>
         </div>
         <div>
           <h3 className="font-semibold mb-3">Price Range</h3>
@@ -63,20 +96,19 @@ export default function ShopPage() {
         </div>
         <div>
           <h3 className="font-semibold mb-3">Color</h3>
-          <RadioGroup defaultValue="all">
+          <RadioGroup value={selectedColor} onValueChange={setSelectedColor}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="all" id="color-all" />
               <Label htmlFor="color-all">All</Label>
             </div>
             {colors.map((color) => (
               <div key={color} className="flex items-center space-x-2">
-                <RadioGroupItem value={color.toLowerCase()} id={`color-${color.toLowerCase()}`} />
+                <RadioGroupItem value={color} id={`color-${color.toLowerCase()}`} />
                 <Label htmlFor={`color-${color.toLowerCase()}`}>{color}</Label>
               </div>
             ))}
           </RadioGroup>
         </div>
-        <Button className="w-full">Apply Filters</Button>
       </CardContent>
     </Card>
   );

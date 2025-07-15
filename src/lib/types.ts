@@ -1,13 +1,17 @@
+
 export interface Product {
   id: string;
   name: string;
   price: number;
-  category: "Sunglasses" | "Eyeglasses" | "Contact Lens";
+  category: "Sunglasses" | "Eyeglasses" | "Contact Lens" | "Clip 2 in 1";
+  gender: "Homme" | "Femme" | "Unisex";
   image: string;
   colors: string[];
+  tags: string[];
   rating: number;
   reviews: number;
   description?: string;
+  ribbon?: string;
 }
 
 export interface CartItem extends Product {

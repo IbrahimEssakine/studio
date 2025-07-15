@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
@@ -6,6 +7,7 @@ import { Star, StarHalf } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "./ui/badge";
 
 interface ProductCardProps extends React.HTMLAttributes<HTMLDivElement> {
   product: Product;
@@ -30,7 +32,10 @@ const renderStars = (rating: number) => {
 
 export function ProductCard({ product, className, ...props }: ProductCardProps) {
   return (
-    <Card className={cn("overflow-hidden group", className)} {...props}>
+    <Card className={cn("overflow-hidden group relative", className)} {...props}>
+      {product.ribbon && (
+        <Badge className="absolute top-2 right-2 z-10" variant="destructive">{product.ribbon}</Badge>
+      )}
       <CardHeader className="p-0">
         <Link href={`/products/${product.id}`} aria-label={product.name}>
           <div className="overflow-hidden">
@@ -54,6 +59,11 @@ export function ProductCard({ product, className, ...props }: ProductCardProps) 
         <div className="flex items-center mt-2 gap-2">
           {renderStars(product.rating)}
           <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
+        </div>
+         <div className="mt-2 flex flex-wrap gap-1">
+          {product.tags?.map((tag) => (
+            <Badge key={tag} variant="secondary">{tag}</Badge>
+          ))}
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">

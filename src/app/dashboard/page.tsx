@@ -65,7 +65,8 @@ const availableTimes = [
 
 const orderStatuses: Order['status'][] = ["Pending", "Shipped", "Delivered", "Cancelled"];
 const appointmentStatuses: Appointment['status'][] = ["Pending", "Confirmed", "Cancelled"];
-const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses", "Contact Lens"];
+const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses", "Contact Lens", "Clip 2 in 1"];
+const productGenders: Product['gender'][] = ["Homme", "Femme", "Unisex"];
 const userRoles: User['role'][] = ["customer", "admin"];
 
 type ActiveItem = {
@@ -89,6 +90,7 @@ export default function DashboardPage() {
     const [activeItem, setActiveItem] = useState<ActiveItem>(null);
     const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
     const [newColorInput, setNewColorInput] = useState("");
+    const [newTagInput, setNewTagInput] = useState("");
     const [newOrderItems, setNewOrderItems] = useState<CartItem[]>([]);
 
     useEffect(() => {
@@ -110,6 +112,7 @@ export default function DashboardPage() {
         if (type === 'product') {
             setNewProductImageFile(null);
             setNewColorInput("");
+            setNewTagInput("");
         }
         if (type === 'order') {
             setNewOrderItems(dataToEdit.details || []);
@@ -126,9 +129,10 @@ export default function DashboardPage() {
                 break;
             case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '', status: 'Pending' }; break;
             case 'product': 
-                initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', image: '', colors: [], rating: 0, reviews: 0, description: '' };
+                initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', gender: 'Unisex', image: '', colors: [], tags: [], rating: 0, reviews: 0, description: '', ribbon: '' };
                 setNewProductImageFile(null);
                 setNewColorInput("");
+                setNewTagInput("");
                 break;
             case 'user': initialData = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '', role: 'customer' }; break;
             default: return;
@@ -256,6 +260,21 @@ export default function DashboardPage() {
         }
     }
 
+    const handleAddTag = () => {
+        if (activeItem && activeItem.type === 'product' && newTagInput.trim() && !activeItem.data.tags.includes(newTagInput.trim())) {
+            const newTags = [...activeItem.data.tags, newTagInput.trim()];
+            handleActiveItemDataChange('tags', newTags);
+            setNewTagInput("");
+        }
+    }
+
+    const handleRemoveTag = (tagToRemove: string) => {
+        if (activeItem && activeItem.type === 'product') {
+            const newTags = activeItem.data.tags.filter((t: string) => t !== tagToRemove);
+            handleActiveItemDataChange('tags', newTags);
+        }
+    }
+
     const handleUpdateOrderItem = (index: number, field: keyof CartItem, value: any) => {
         const updatedItems = [...newOrderItems];
         if (field === 'quantity') {
@@ -341,12 +360,10 @@ export default function DashboardPage() {
                             <Card>
                                 <CardHeader className='pb-2'><CardTitle className="text-lg">Order Items ({orderItemsCount})</CardTitle></CardHeader>
                                 <CardContent className="space-y-3 pt-4">
-                                    {activeItem.mode === 'add' &&
                                     <div className="space-y-2">
                                         <Label>Add Product</Label>
                                         <ProductSelector products={products} onProductSelect={handleAddProductToOrder} />
                                     </div>
-                                    }
 
                                     {orderItems.length > 0 ? orderItems.map((item: any, index: number) => (
                                         <Card key={`${item.id}-${index}`} className="p-3">
@@ -366,9 +383,9 @@ export default function DashboardPage() {
                                                         <Input value={item.lensType} onChange={(e) => handleUpdateOrderItem(index, 'lensType', e.target.value)} placeholder="Lens Type" className="h-8 col-span-2"/>
                                                     </div>
                                                 </div>
-                                                {activeItem.mode === 'add' && <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
                                                     <XIcon className="h-4 w-4" />
-                                                </Button>}
+                                                </Button>
                                             </div>
                                         </Card>
                                     )) : <p className="text-sm text-muted-foreground py-4 text-center">No items in this order.</p>}
@@ -385,7 +402,7 @@ export default function DashboardPage() {
             <DialogHeader>
                 <DialogTitle>{activeItem.mode === 'add' ? 'Add New' : 'Edit'} {activeItem.type.charAt(0).toUpperCase() + activeItem.type.slice(1)}</DialogTitle>
             </DialogHeader>
-            <div className="py-4 overflow-y-auto px-6 pr-2 max-h-[70vh]">
+            <div className="py-4 overflow-y-auto px-6 pr-4 max-h-[70vh]">
                 {activeItem.type === 'appointment' && (
                      <div className="space-y-4">
                         <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
@@ -405,15 +422,18 @@ export default function DashboardPage() {
                      <div className="space-y-4">
                         <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} disabled={activeItem.mode === 'edit'} />
                         <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                        <LabelledInput label="Ribbon Text (e.g. Best Seller)" value={activeItem.data.ribbon} onChange={(e) => handleActiveItemDataChange('ribbon', e.target.value)} />
                         <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
                          <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>
                         <div className="grid grid-cols-2 gap-4">
                             <LabelledInput label="Price" type="number" value={activeItem.data.price} onChange={(e) => handleActiveItemDataChange('price', parseFloat(e.target.value) || 0)} />
                             <div className="space-y-2"><Label>Category</Label><Select value={activeItem.data.category} onValueChange={(v) => handleActiveItemDataChange('category', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
                         </div>
+                        <div className="space-y-2"><Label>Gender</Label><Select value={activeItem.data.gender} onValueChange={(v) => handleActiveItemDataChange('gender', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productGenders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent></Select></div>
+
                         <div className="space-y-2">
                             <Label>Colors</Label>
-                            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
+                            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px] bg-background">
                                 {activeItem.data.colors.map((color: string, index: number) => (
                                     <Badge key={index} variant="secondary" className="flex items-center gap-1">{color}<button type="button" onClick={() => handleRemoveColor(color)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
                                 ))}
@@ -421,6 +441,19 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2">
                                 <Input placeholder="Add a color name" value={newColorInput} onChange={(e) => setNewColorInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddColor())} />
                                 <Button type="button" variant="outline" onClick={handleAddColor}>Add</Button>
+                            </div>
+                        </div>
+
+                         <div className="space-y-2">
+                            <Label>Tags</Label>
+                            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px] bg-background">
+                                {activeItem.data.tags.map((tag: string, index: number) => (
+                                    <Badge key={index} variant="outline" className="flex items-center gap-1">{tag}<button type="button" onClick={() => handleRemoveTag(tag)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Input placeholder="Add a tag" value={newTagInput} onChange={(e) => setNewTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())} />
+                                <Button type="button" variant="outline" onClick={handleAddTag}>Add</Button>
                             </div>
                         </div>
                     </div>
@@ -493,7 +526,7 @@ export default function DashboardPage() {
         <Dialog open={!!activeItem} onOpenChange={(isOpen) => !isOpen && setActiveItem(null)}>
             <DialogContent className="sm:max-w-4xl">
                  {renderDialogContent()}
-                 <DialogFooter>
+                 <DialogFooter className="px-6 pb-4 pt-0">
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                     <Button onClick={handleSave}>Save</Button>
                 </DialogFooter>
@@ -666,5 +699,3 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
         </>
     );
 }
-
-    
