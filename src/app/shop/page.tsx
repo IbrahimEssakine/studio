@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,8 +23,14 @@ const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"]
 
 export default function ShopPage() {
   const { products: allProducts } = useProducts();
-  const [priceRange, setPriceRange] = useState([0, 2500]);
-  
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter(
+      (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
+    );
+  }, [allProducts, priceRange]);
+
   const Filters = () => (
     <Card>
       <CardHeader>
@@ -45,10 +51,10 @@ export default function ShopPage() {
         <div>
           <h3 className="font-semibold mb-3">Price Range</h3>
           <Slider
-            defaultValue={[0, 2500]}
+            value={priceRange}
             max={5000}
             step={100}
-            onValueChange={(value) => setPriceRange(value)}
+            onValueChange={setPriceRange}
           />
           <div className="flex justify-between text-sm text-muted-foreground mt-2">
             <span>{priceRange[0]} DH</span>
@@ -88,7 +94,7 @@ export default function ShopPage() {
         </aside>
         <main className="md:col-span-3">
           <div className="flex justify-between items-center mb-6">
-            <p className="text-muted-foreground">{allProducts.length} products</p>
+            <p className="text-muted-foreground">{filteredProducts.length} products</p>
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
@@ -108,7 +114,7 @@ export default function ShopPage() {
             </div>
           </div>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {allProducts.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} data-ai-hint="eyewear product" />
             ))}
           </div>
