@@ -31,7 +31,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Order, Appointment, Product, User, CartItem } from "@/lib/types";
 import { useOrders } from "@/context/order-context";
@@ -309,7 +308,7 @@ export default function DashboardPage() {
     const renderDialogContent = () => {
         if (!activeItem) return null;
 
-        if (activeItem.type === 'order') {
+        if (activeItem.type === 'order' && activeItem.mode === 'edit') {
             const orderItems = newOrderItems;
             const orderItemsCount = orderItems.reduce((acc: number, item: any) => acc + item.quantity, 0);
             const orderTotal = orderItems.reduce((acc: number, item: any) => acc + item.price * item.quantity, 0);
@@ -328,10 +327,8 @@ export default function DashboardPage() {
             return (
                 <>
                     <DialogHeader>
-                        <DialogTitle>{activeItem.mode === 'edit' ? 'Edit Order' : 'Add New Order'} - {activeItem.data.id || 'New'}</DialogTitle>
-                        <DialogDescription>
-                            {activeItem.mode === 'edit' ? 'View and edit the details of this order.' : 'Create a new order.'}
-                        </DialogDescription>
+                        <DialogTitle>Edit Order - {activeItem.data.id}</DialogTitle>
+                        <DialogDescription>View and edit the details of this order.</DialogDescription>
                     </DialogHeader>
                     <div className="grid md:grid-cols-2 gap-x-8 gap-y-6 py-4 max-h-[70vh] overflow-y-auto px-6">
                         {/* Left Column */}
@@ -432,12 +429,16 @@ export default function DashboardPage() {
                             <LabelledInput label="Price" type="number" value={activeItem.data.price} onChange={(e) => handleActiveItemDataChange('price', parseFloat(e.target.value) || 0)} />
                             <div className="space-y-2"><Label>Category</Label><Select value={activeItem.data.category} onValueChange={(v) => handleActiveItemDataChange('category', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                             <LabelledInput label="Rating" type="number" value={activeItem.data.rating} onChange={(e) => handleActiveItemDataChange('rating', parseFloat(e.target.value) || 0)} />
+                             <LabelledInput label="Reviews" type="number" value={activeItem.data.reviews} onChange={(e) => handleActiveItemDataChange('reviews', parseInt(e.target.value) || 0)} />
+                        </div>
                         <div className="space-y-2"><Label>Gender</Label><Select value={activeItem.data.gender} onValueChange={(v) => handleActiveItemDataChange('gender', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productGenders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent></Select></div>
 
                         <div className="space-y-2">
                             <Label>Colors</Label>
                             <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px] bg-background">
-                                {activeItem.data.colors.map((color: string, index: number) => (
+                                {activeItem.data.colors?.map((color: string, index: number) => (
                                     <Badge key={index} variant="secondary" className="flex items-center gap-1">{color}<button type="button" onClick={() => handleRemoveColor(color)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
                                 ))}
                             </div>
@@ -450,7 +451,7 @@ export default function DashboardPage() {
                          <div className="space-y-2">
                             <Label>Tags</Label>
                             <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px] bg-background">
-                                {activeItem.data.tags.map((tag: string, index: number) => (
+                                {activeItem.data.tags?.map((tag: string, index: number) => (
                                     <Badge key={index} variant="outline" className="flex items-center gap-1">{tag}<button type="button" onClick={() => handleRemoveTag(tag)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
                                 ))}
                             </div>
@@ -595,6 +596,18 @@ const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
 const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'appointment' | 'product' | 'user', data: any[], onEdit: (type: any, item: any) => void, onDelete: (type: any, id: string) => void }) => {
     const isMobile = useMemo(() => typeof window !== "undefined" && window.innerWidth < 768, []);
     const { users } = useUser();
+    const [alertDialogState, setAlertDialogState] = useState<{ open: boolean, type?: string, id?: string }>({ open: false });
+
+    const handleDeleteClick = (type: string, id: string) => {
+        setAlertDialogState({ open: true, type, id });
+    };
+
+    const confirmDelete = () => {
+        if (alertDialogState.type && alertDialogState.id) {
+            onDelete(alertDialogState.type, alertDialogState.id);
+        }
+        setAlertDialogState({ open: false });
+    };
 
     const getTableHeaders = () => {
         switch (type) {
@@ -631,7 +644,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base flex justify-between items-start">
                                 <span>{item.name || `${item.firstName} ${item.lastName}` || item.id}</span>
-                                <ItemActions item={item} type={type} onEdit={onEdit} onDelete={onDelete} users={users} />
+                                <ItemActions item={item} type={type} onEdit={onEdit} onDelete={handleDeleteClick} users={users} />
                             </CardTitle>
                             <CardDescription>{item.customerName || item.email || item.category}</CardDescription>
                         </CardHeader>
@@ -647,6 +660,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
     }
 
     return (
+        <>
         <Table>
             <TableHeader><TableRow>{getTableHeaders().map(h => <TableHead key={h} className={['Total', 'Price'].includes(h) ? 'text-right' : ''}>{h}</TableHead>)}<TableHead><span className="sr-only">Actions</span></TableHead></TableRow></TableHeader>
             <TableBody>
@@ -655,7 +669,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
                         <TableRow key={item.id}>
                             {renderRowCells(item)}
                             <TableCell className="text-right">
-                                <ItemActions item={item} type={type} onEdit={onEdit} onDelete={onDelete} users={users} />
+                                <ItemActions item={item} type={type} onEdit={onEdit} onDelete={handleDeleteClick} users={users} />
                             </TableCell>
                         </TableRow>
                     ))
@@ -664,39 +678,40 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
                 )}
             </TableBody>
         </Table>
+        <AlertDialog open={alertDialogState.open} onOpenChange={(open) => setAlertDialogState({ ...alertDialogState, open })}>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {alertDialogState.type}.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      </>
     );
 };
 
 
-const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type: string, onEdit: Function, onDelete: Function, users: User[] }) => {
+const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type: string, onEdit: Function, onDelete: (type: string, id: string) => void, users: User[] }) => {
     const isDeletable = !(type === 'user' && item.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1);
     
     return (
-        <AlertDialog>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => onEdit(type, item)}>
-                        <Eye className="mr-2 h-4 w-4" /> View / Edit
-                    </DropdownMenuItem>
-                    {type === 'appointment' && item.status !== 'Confirmed' &&
-                        <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
-                    }
-                    <DropdownMenuSeparator />
-                    {isDeletable && (
-                        <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-                        </AlertDialogTrigger>
-                    )}
-                </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onEdit(type, item)}>
+                    <Eye className="mr-2 h-4 w-4" /> View / Edit
+                </DropdownMenuItem>
+                {type === 'appointment' && item.status !== 'Confirmed' &&
+                    <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
+                }
+                <DropdownMenuSeparator />
+                {isDeletable && (
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onDelete(type, item.id); }} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
+
+    
