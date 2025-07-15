@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Product } from "@/lib/types";
 import { ListFilter } from "lucide-react";
 import {
   Sheet,
@@ -17,22 +16,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
-const allProducts: Product[] = [
-  { id: "1", name: "Classic Aviator", price: 1500, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Gold", "Silver"], rating: 4.5, reviews: 120 },
-  { id: "2", name: "Modern Wayfarer", price: 1300, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Black", "Tortoise"], rating: 4.8, reviews: 250 },
-  { id: "3", name: "Retro Round", price: 1200, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Bronze", "Matte Black"], rating: 4.6, reviews: 95 },
-  { id: "4", name: "Minimalist Frames", price: 1800, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Titanium", "Clear"], rating: 4.9, reviews: 180 },
-  { id: "5", name: "Cat-Eye Chic", price: 1650, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Rose Gold", "Black"], rating: 4.7, reviews: 150 },
-  { id: "6", name: "Scholarly Specs", price: 950, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Silver", "Gunmetal"], rating: 4.4, reviews: 88 },
-  { id: "7", name: "Sporty Wraparounds", price: 1900, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Red", "Blue"], rating: 4.8, reviews: 210 },
-  { id: "8", name: "Bold Acetate", price: 2100, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Crystal", "Emerald Green"], rating: 4.9, reviews: 300 },
-];
+import { useProducts } from "@/context/product-context";
 
 const categories = ["Sunglasses", "Eyeglasses"];
 const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"];
 
 export default function ShopPage() {
+  const { products: allProducts } = useProducts();
   const [priceRange, setPriceRange] = useState([0, 2500]);
   
   const Filters = () => (

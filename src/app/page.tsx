@@ -1,54 +1,16 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
 import { Eye, ShieldCheck, Gem } from "lucide-react";
-import type { Product } from "@/lib/types";
 import Link from "next/link";
 import Image from "next/image";
-
-const featuredProducts: Product[] = [
-  {
-    id: "1",
-    name: "Classic Aviator",
-    price: 150,
-    category: "Sunglasses",
-    image: "https://placehold.co/600x400.png",
-    colors: ["Gold", "Silver"],
-    rating: 4.5,
-    reviews: 120,
-  },
-  {
-    id: "2",
-    name: "Modern Wayfarer",
-    price: 130,
-    category: "Eyeglasses",
-    image: "https://placehold.co/600x400.png",
-    colors: ["Black", "Tortoise"],
-    rating: 4.8,
-    reviews: 250,
-  },
-  {
-    id: "3",
-    name: "Retro Round",
-    price: 120,
-    category: "Sunglasses",
-    image: "https://placehold.co/600x400.png",
-    colors: ["Bronze", "Matte Black"],
-    rating: 4.6,
-    reviews: 95,
-  },
-  {
-    id: "4",
-    name: "Minimalist Frames",
-    price: 180,
-    category: "Eyeglasses",
-    image: "https://placehold.co/600x400.png",
-    colors: ["Titanium", "Clear"],
-    rating: 4.9,
-    reviews: 180,
-  },
-];
+import { useProducts } from "@/context/product-context";
 
 export default function Home() {
+  const { products } = useProducts();
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <div className="flex flex-col">
       <section className="relative w-full py-20 md:py-32 lg:py-40 bg-card">

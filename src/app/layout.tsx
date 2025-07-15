@@ -9,6 +9,7 @@ import { CartProvider } from "@/context/cart-context";
 import { OrderProvider } from "@/context/order-context";
 import { AppointmentProvider } from "@/context/appointment-context";
 import { UserProvider } from "@/context/user-context";
+import { ProductProvider } from "@/context/product-context";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -51,14 +52,16 @@ export default function RootLayout({
         <UserProvider>
             <OrderProvider>
             <AppointmentProvider>
-                <CartProvider>
-                    <div className="relative flex min-h-dvh flex-col bg-background">
-                    <Header />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                    </div>
-                    <Toaster />
-                </CartProvider>
+                <ProductProvider>
+                    <CartProvider>
+                        <div className="relative flex min-h-dvh flex-col bg-background">
+                        <Header />
+                        <main className="flex-1">{children}</main>
+                        <Footer />
+                        </div>
+                        <Toaster />
+                    </CartProvider>
+                </ProductProvider>
             </AppointmentProvider>
             </OrderProvider>
         </UserProvider>
