@@ -109,11 +109,11 @@ export default function DashboardPage() {
     };
     
     const handleAddClick = () => {
-        const type = activeTab as ActiveItem['type'];
+        const type = activeTab.slice(0, -1) as ActiveItem['type']; // remove 's' from tab name
         let initialData;
         switch(type) {
-            case 'order': initialData = { customerName: '', status: 'Pending', total: 0, shippingAddress: { email: '', name: '', phone: '', address: '' }, details: [] }; break;
-            case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '' }; break;
+            case 'order': initialData = { customerName: '', status: 'Pending', total: 0, orderDate: new Date().toISOString().split('T')[0], shippingAddress: { email: '', name: '', phone: '', address: '', city: '', zip: '' }, details: [] }; break;
+            case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '', status: 'Pending' }; break;
             case 'product': 
                 initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', image: '', colors: [], rating: 0, reviews: 0, description: '' };
                 setNewProductImageFile(null);
@@ -207,7 +207,7 @@ export default function DashboardPage() {
     };
 
      const handleShippingAddressChange = (field: string, value: string) => {
-        if (activeItem && activeItem.data.shippingAddress) {
+        if (activeItem && activeItem.type === 'order' && activeItem.data.shippingAddress) {
             const newAddress = { ...activeItem.data.shippingAddress, [field]: value };
             handleActiveItemDataChange('shippingAddress', newAddress);
         }
@@ -272,8 +272,8 @@ export default function DashboardPage() {
                                     <LabelledInput label="Email" value={activeItem.data.shippingAddress?.email} onChange={e => handleShippingAddressChange('email', e.target.value)} />
                                     <LabelledInput label="Address" value={activeItem.data.shippingAddress?.address} onChange={e => handleShippingAddressChange('address', e.target.value)} />
                                     <div className="grid grid-cols-2 gap-4">
-                                    <LabelledInput label="City" value={activeItem.data.shippingAddress?.city} onChange={e => handleShippingAddressChange('city', e.target.value)} />
-                                    <LabelledInput label="ZIP" value={activeItem.data.shippingAddress?.zip} onChange={e => handleShippingAddressChange('zip', e.target.value)} />
+                                        <LabelledInput label="City" value={activeItem.data.shippingAddress?.city} onChange={e => handleShippingAddressChange('city', e.target.value)} />
+                                        <LabelledInput label="ZIP" value={activeItem.data.shippingAddress?.zip} onChange={e => handleShippingAddressChange('zip', e.target.value)} />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -312,6 +312,7 @@ export default function DashboardPage() {
                      <div className="space-y-4">
                         <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
                         <LabelledInput label="Email" type="email" value={activeItem.data.email} onChange={(e) => handleActiveItemDataChange('email', e.target.value)} />
+                        <LabelledInput label="Phone" type="tel" value={activeItem.data.phone} onChange={(e) => handleActiveItemDataChange('phone', e.target.value)} />
                         <div className="space-y-2"><Label>Date</Label>
                             <Popover>
                                 <PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !activeItem.data.date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{activeItem.data.date ? format(activeItem.data.date, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger>
@@ -551,10 +552,3 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
         </>
     );
 }
-
-
-    
-
-    
-
-    
