@@ -64,4 +64,8 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  
+  html[lang="ar"] {
+    direction: rtl;
+  }
 }

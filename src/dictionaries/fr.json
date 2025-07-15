@@ -1,0 +1,31 @@
+
+{
+  "header": {
+    "shop": "Boutique",
+    "about": "À Propos",
+    "bookAppointment": "Prendre Rendez-vous",
+    "dashboard": "Tableau de Bord",
+    "myAccount": "Mon Compte",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "shoppingCart": "Panier d'achats"
+  },
+  "home": {
+    "heroTitle": "Voyez le Monde avec Style",
+    "heroSubtitle": "Découvrez notre collection de lunettes haut de gamme, fabriquées avec précision et conçues pour l'individu moderne.",
+    "shopNow": "Acheter Maintenant",
+    "bookAppointmentBtn": "Prendre Rendez-vous",
+    "featuredProducts": "Produits en Vedette",
+    "featuredSubtitle": "Des styles triés sur le volet qui définissent les tendances et offrent un confort inégalé.",
+    "exploreCollection": "Explorer la Collection Complète",
+    "qualityTitle": "La Qualité que vous Pouvez Voir et Sentir",
+    "qualityDescription": "Chez Agharas Vision, nous croyons en un mélange d'art et de science. Nos montures proviennent des meilleurs matériaux, et nos verres sont conçus pour une clarté et une protection ultimes.",
+    "premiumMaterials": "Matériaux de Qualité",
+    "premiumMaterialsDesc": "Du titane léger à l'acétate riche et artisanal, nos montures sont conçues pour la durabilité et le confort.",
+    "advancedLens": "Technologie de Verre Avancée",
+    "advancedLensDesc": "Faites l'expérience d'une vision supérieure avec nos verres antireflets, résistants aux rayures et anti-UV.",
+    "expertCraftsmanship": "Savoir-faire d'Expert",
+    "expertCraftsmanshipDesc": "Chaque paire est méticuleusement assemblée et inspectée par nos opticiens qualifiés pour garantir un ajustement parfait."
+  }
+}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,11 @@ import { Eye, ShieldCheck, Gem } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useProducts } from "@/context/product-context";
+import { useLanguage } from "@/context/language-context";
 
 export default function Home() {
   const { products } = useProducts();
+  const { dictionary } = useLanguage();
   const featuredProducts = products.slice(0, 4);
 
   return (
@@ -17,18 +20,17 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline font-bold tracking-tight text-foreground">
-              See the World in Style
+              {dictionary.home.heroTitle}
             </h1>
             <p className="mt-4 text-lg md:text-xl text-muted-foreground">
-              Discover our collection of premium eyewear, crafted with precision
-              and designed for the modern individual.
+              {dictionary.home.heroSubtitle}
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Button asChild size="lg">
-                <Link href="/shop">Shop Now</Link>
+                <Link href="/shop">{dictionary.home.shopNow}</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/book-appointment">Book an Appointment</Link>
+                <Link href="/book-appointment">{dictionary.home.bookAppointmentBtn}</Link>
               </Button>
             </div>
           </div>
@@ -38,11 +40,10 @@ export default function Home() {
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <h2 className="text-3xl md:text-4xl font-headline font-bold text-center text-foreground">
-            Featured Products
+            {dictionary.home.featuredProducts}
           </h2>
           <p className="mt-2 text-center text-muted-foreground max-w-2xl mx-auto">
-            Handpicked styles that define trends and offer unparalleled
-            comfort.
+            {dictionary.home.featuredSubtitle}
           </p>
           <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {featuredProducts.map((product) => (
@@ -56,7 +57,7 @@ export default function Home() {
           </div>
           <div className="text-center mt-12">
             <Button asChild variant="link" className="text-lg">
-              <Link href="/shop">Explore Full Collection &rarr;</Link>
+              <Link href="/shop">{dictionary.home.exploreCollection} &rarr;</Link>
             </Button>
           </div>
         </div>
@@ -67,12 +68,10 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
               <h2 className="text-3xl md:text-4xl font-headline font-bold text-foreground">
-                Quality You Can See and Feel
+                {dictionary.home.qualityTitle}
               </h2>
               <p className="mt-4 text-muted-foreground">
-                At Agharas Vision, we believe in a blend of artistry and
-                science. Our frames are sourced from the finest materials, and
-                our lenses are crafted for ultimate clarity and protection.
+                {dictionary.home.qualityDescription}
               </p>
               <div className="mt-8 space-y-6">
                 <div className="flex items-start gap-4">
@@ -80,10 +79,9 @@ export default function Home() {
                     <Gem className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Premium Materials</h3>
+                    <h3 className="text-lg font-semibold">{dictionary.home.premiumMaterials}</h3>
                     <p className="text-muted-foreground">
-                      From lightweight titanium to rich, handcrafted acetate,
-                      our frames are built for durability and comfort.
+                      {dictionary.home.premiumMaterialsDesc}
                     </p>
                   </div>
                 </div>
@@ -93,11 +91,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">
-                      Advanced Lens Technology
+                      {dictionary.home.advancedLens}
                     </h3>
                     <p className="text-muted-foreground">
-                      Experience superior vision with our anti-reflective,
-                      scratch-resistant, and UV-blocking lenses.
+                      {dictionary.home.advancedLensDesc}
                     </p>
                   </div>
                 </div>
@@ -106,10 +103,9 @@ export default function Home() {
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Expert Craftsmanship</h3>
+                    <h3 className="text-lg font-semibold">{dictionary.home.expertCraftsmanship}</h3>
                     <p className="text-muted-foreground">
-                      Each pair is meticulously assembled and inspected by our
-                      skilled opticians to ensure a perfect fit.
+                      {dictionary.home.expertCraftsmanshipDesc}
                     </p>
                   </div>
                 </div>

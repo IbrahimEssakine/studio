@@ -10,6 +10,8 @@ import { OrderProvider } from "@/context/order-context";
 import { AppointmentProvider } from "@/context/appointment-context";
 import { UserProvider } from "@/context/user-context";
 import { ProductProvider } from "@/context/product-context";
+import { LanguageProvider } from "@/context/language-context";
+import React from "react";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -33,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -49,22 +51,24 @@ export default function RootLayout({
           playfairDisplay.variable
         )}
       >
-        <UserProvider>
+        <LanguageProvider>
+          <UserProvider>
             <OrderProvider>
-            <AppointmentProvider>
+              <AppointmentProvider>
                 <ProductProvider>
-                    <CartProvider>
-                        <div className="relative flex min-h-dvh flex-col bg-background">
-                        <Header />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                        </div>
-                        <Toaster />
-                    </CartProvider>
+                  <CartProvider>
+                    <div className="relative flex min-h-dvh flex-col bg-background">
+                      <Header />
+                      <main className="flex-1">{children}</main>
+                      <Footer />
+                    </div>
+                    <Toaster />
+                  </CartProvider>
                 </ProductProvider>
-            </AppointmentProvider>
+              </AppointmentProvider>
             </OrderProvider>
-        </UserProvider>
+          </UserProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

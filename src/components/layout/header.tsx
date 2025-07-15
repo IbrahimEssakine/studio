@@ -24,22 +24,24 @@ import React from "react";
 import { useCart } from "@/context/cart-context";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/context/user-context";
-
-const navLinks = [
-  { href: "/shop", label: "Shop" },
-  { href: "/about", label: "About Us" },
-  { href: "/book-appointment", label: "Book Appointment" },
-];
+import { useLanguage } from "@/context/language-context";
 
 export function Header() {
   const pathname = usePathname();
   const { cart } = useCart();
   const { user, logout } = useUser();
+  const { dictionary, setLanguage } = useLanguage();
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const navLinks = [
+    { href: "/shop", label: dictionary.header.shop },
+    { href: "/about", label: dictionary.header.about },
+    { href: "/book-appointment", label: dictionary.header.bookAppointment },
+  ];
 
   const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -104,7 +106,7 @@ export function Header() {
               </NavLink>
             ))}
              {user?.role === 'admin' && (
-              <NavLink href="/dashboard">Dashboard</NavLink>
+              <NavLink href="/dashboard">{dictionary.header.dashboard}</NavLink>
             )}
           </nav>
         </div>
@@ -133,7 +135,7 @@ export function Header() {
                     </MobileNavLink>
                   ))}
                    {user?.role === 'admin' && (
-                    <MobileNavLink href="/dashboard">Dashboard</MobileNavLink>
+                    <MobileNavLink href="/dashboard">{dictionary.header.dashboard}</MobileNavLink>
                   )}
                 </div>
               </div>
@@ -151,9 +153,9 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>English</DropdownMenuItem>
-                <DropdownMenuItem>Français</DropdownMenuItem>
-                <DropdownMenuItem>العربية</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')}>English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('fr')}>Français</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('ar')}>العربية</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -166,12 +168,12 @@ export function Header() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>{dictionary.header.myAccount}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/profile">{dictionary.header.profile}</Link></DropdownMenuItem>
                         <DropdownMenuItem onClick={logout}>
                             <LogOut className="mr-2 h-4 w-4" />
-                            <span>Log out</span>
+                            <span>{dictionary.header.logout}</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                  </DropdownMenu>
@@ -179,7 +181,7 @@ export function Header() {
                 <Button asChild variant="ghost" size="icon">
                     <Link href="/login">
                         <User className="h-5 w-5" />
-                        <span className="sr-only">Login</span>
+                        <span className="sr-only">{dictionary.header.login}</span>
                     </Link>
                 </Button>
             )}
@@ -192,7 +194,7 @@ export function Header() {
                     {cartItemCount}
                   </Badge>
                 )}
-                <span className="sr-only">Shopping Cart</span>
+                <span className="sr-only">{dictionary.header.shoppingCart}</span>
               </Link>
             </Button>
           </nav>

@@ -1,0 +1,31 @@
+
+{
+  "header": {
+    "shop": "Shop",
+    "about": "About Us",
+    "bookAppointment": "Book Appointment",
+    "dashboard": "Dashboard",
+    "myAccount": "My Account",
+    "profile": "Profile",
+    "logout": "Log out",
+    "login": "Login",
+    "shoppingCart": "Shopping Cart"
+  },
+  "home": {
+    "heroTitle": "See the World in Style",
+    "heroSubtitle": "Discover our collection of premium eyewear, crafted with precision and designed for the modern individual.",
+    "shopNow": "Shop Now",
+    "bookAppointmentBtn": "Book an Appointment",
+    "featuredProducts": "Featured Products",
+    "featuredSubtitle": "Handpicked styles that define trends and offer unparalleled comfort.",
+    "exploreCollection": "Explore Full Collection",
+    "qualityTitle": "Quality You Can See and Feel",
+    "qualityDescription": "At Agharas Vision, we believe in a blend of artistry and science. Our frames are sourced from the finest materials, and our lenses are crafted for ultimate clarity and protection.",
+    "premiumMaterials": "Premium Materials",
+    "premiumMaterialsDesc": "From lightweight titanium to rich, handcrafted acetate, our frames are built for durability and comfort.",
+    "advancedLens": "Advanced Lens Technology",
+    "advancedLensDesc": "Experience superior vision with our anti-reflective, scratch-resistant, and UV-blocking lenses.",
+    "expertCraftsmanship": "Expert Craftsmanship",
+    "expertCraftsmanshipDesc": "Each pair is meticulously assembled and inspected by our skilled opticians to ensure a perfect fit."
+  }
+}
