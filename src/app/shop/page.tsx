@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { useProducts } from "@/context/product-context";
 
-const categories = ["Sunglasses", "Eyeglasses"];
+const categories = ["Sunglasses", "Eyeglasses", "Contact Lens"];
 const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"];
 
 export default function ShopPage() {

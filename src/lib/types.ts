@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  category: "Sunglasses" | "Eyeglasses";
+  category: "Sunglasses" | "Eyeglasses" | "Contact Lens";
   image: string;
   colors: string[];
   rating: number;

@@ -65,7 +65,7 @@ const availableTimes = [
 
 const orderStatuses: Order['status'][] = ["Pending", "Shipped", "Delivered", "Cancelled"];
 const appointmentStatuses: Appointment['status'][] = ["Pending", "Confirmed", "Cancelled"];
-const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses"];
+const productCategories: Product['category'][] = ["Sunglasses", "Eyeglasses", "Contact Lens"];
 const userRoles: User['role'][] = ["customer", "admin"];
 
 type ActiveItem = {
@@ -341,10 +341,12 @@ export default function DashboardPage() {
                             <Card>
                                 <CardHeader className='pb-2'><CardTitle className="text-lg">Order Items ({orderItemsCount})</CardTitle></CardHeader>
                                 <CardContent className="space-y-3 pt-4">
+                                    {activeItem.mode === 'add' &&
                                     <div className="space-y-2">
                                         <Label>Add Product</Label>
                                         <ProductSelector products={products} onProductSelect={handleAddProductToOrder} />
                                     </div>
+                                    }
 
                                     {orderItems.length > 0 ? orderItems.map((item: any, index: number) => (
                                         <Card key={`${item.id}-${index}`} className="p-3">
@@ -364,9 +366,9 @@ export default function DashboardPage() {
                                                         <Input value={item.lensType} onChange={(e) => handleUpdateOrderItem(index, 'lensType', e.target.value)} placeholder="Lens Type" className="h-8 col-span-2"/>
                                                     </div>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
+                                                {activeItem.mode === 'add' && <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
                                                     <XIcon className="h-4 w-4" />
-                                                </Button>
+                                                </Button>}
                                             </div>
                                         </Card>
                                     )) : <p className="text-sm text-muted-foreground py-4 text-center">No items in this order.</p>}
@@ -635,32 +637,32 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
     
     return (
         <>
-            <AlertDialog>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEdit(type, item)}>
-                            <Eye className="mr-2 h-4 w-4" /> View / Edit
-                        </DropdownMenuItem>
-                        {type === 'appointment' && item.status !== 'Confirmed' &&
-                            <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
-                        }
-                        <DropdownMenuSeparator />
-                        {isDeletable && (
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-                            </AlertDialogTrigger>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+        <AlertDialog>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => onEdit(type, item)}>
+                        <Eye className="mr-2 h-4 w-4" /> View / Edit
+                    </DropdownMenuItem>
+                    {type === 'appointment' && item.status !== 'Confirmed' &&
+                        <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
+                    }
+                    <DropdownMenuSeparator />
+                    {isDeletable && (
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                        </AlertDialogTrigger>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the {type}.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(type, item.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         </>
     );
 }
