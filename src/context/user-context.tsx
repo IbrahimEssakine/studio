@@ -40,6 +40,7 @@ interface UserContextType {
   login: (email: string, password: string) => { success: boolean, isAdmin: boolean, message: string };
   logout: () => void;
   addUser: (userData: Omit<User, 'id' | 'role'>) => { success: boolean, message: string };
+  updateUser: (userId: string, updatedData: Partial<User>) => { success: boolean, message: string };
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -136,8 +137,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true, message: 'Account created successfully.' };
   };
 
+  const updateUser = (userId: string, updatedData: Partial<User>): { success: boolean, message: string } => {
+    let userUpdated = false;
+    const updatedUsers = users.map(u => {
+        if (u.id === userId) {
+            userUpdated = true;
+            return { ...u, ...updatedData };
+        }
+        return u;
+    });
+
+    if (userUpdated) {
+        setUsers(updatedUsers);
+        // Also update the currently logged-in user's state
+        if (user && user.id === userId) {
+             // omit password from the updated user object before setting it in state
+            const { password, ...userToStore } = { ...user, ...updatedData };
+            setUser(userToStore);
+        }
+        return { success: true, message: "User updated successfully." };
+    }
+    
+    return { success: false, message: "User not found." };
+  }
+
   return (
-    <UserContext.Provider value={{ user, users, login, logout, addUser }}>
+    <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser }}>
       {children}
     </UserContext.Provider>
   );
