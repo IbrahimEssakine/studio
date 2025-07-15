@@ -24,7 +24,7 @@ const lensTypes = [
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const { id: productId } = React.use(params);
+  const { id: productId } = params;
   const { getProductById } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -79,16 +79,20 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
-        <Card className="overflow-hidden">
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={800}
-            height={600}
-            className="w-full h-auto object-cover"
-            data-ai-hint="eyewear product"
-          />
-        </Card>
+        <div className="md:sticky md:top-24">
+            <Card className="overflow-hidden">
+                <div className="aspect-video relative w-full">
+                    <Image
+                        src={product.image}
+                        alt={product.name}
+                        layout="fill"
+                        objectFit="cover"
+                        className="w-full h-full"
+                        data-ai-hint="eyewear product"
+                    />
+                </div>
+            </Card>
+        </div>
 
         <div className="space-y-6">
           <div>
