@@ -103,10 +103,16 @@ export default function DashboardPage() {
 
     const handleEditClick = (type: ActiveItem['type'], data: any) => {
         const dataToEdit = type === 'appointment' ? { ...data, date: new Date(data.date) } : { ...data };
+        if (type === 'order' && !dataToEdit.details) {
+            dataToEdit.details = [];
+        }
         setActiveItem({ type, mode: 'edit', data: dataToEdit });
         if (type === 'product') {
             setNewProductImageFile(null);
             setNewColorInput("");
+        }
+        if (type === 'order') {
+            setNewOrderItems(dataToEdit.details || []);
         }
     };
     
@@ -163,7 +169,7 @@ export default function DashboardPage() {
                     else { toast({ title: "Error", description: result.message, variant: "destructive" }); return; }
                 } else if (type === 'order') {
                     const orderTotal = newOrderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-                    const orderToAdd = { ...data, details: newOrderItems, total: orderTotal };
+                    const orderToAdd = { ...data, details: newOrderItems, total: orderTotal, items: newOrderItems.reduce((acc, i) => acc + i.quantity, 0) };
                     addOrder(orderToAdd);
                     toast({ title: "Order Added", description: `A new order for ${data.customerName} has been created.` });
                 } else if (type === 'appointment') {
@@ -172,7 +178,8 @@ export default function DashboardPage() {
                 }
             } else { // mode === 'edit'
                 if (type === 'order') {
-                    updateOrder(data.id, data);
+                    const updatedOrderData = { ...data, details: newOrderItems };
+                    updateOrder(data.id, updatedOrderData);
                     toast({ title: "Order Updated", description: `Order ${data.id} has been updated.` });
                 } else if (type === 'appointment') {
                     updateAppointment(data.id, data);
@@ -248,6 +255,22 @@ export default function DashboardPage() {
             handleActiveItemDataChange('colors', newColors);
         }
     }
+
+    const handleUpdateOrderItem = (index: number, field: keyof CartItem, value: any) => {
+        const updatedItems = [...newOrderItems];
+        if (field === 'quantity') {
+            updatedItems[index].quantity = Math.max(1, parseInt(value, 10));
+        } else if (field === 'color') {
+            updatedItems[index].color = value;
+        } else if (field === 'lensType') {
+            updatedItems[index].lensType = value;
+        }
+        setNewOrderItems(updatedItems);
+    };
+
+    const handleRemoveOrderItem = (index: number) => {
+        setNewOrderItems(prev => prev.filter((_, i) => i !== index));
+    };
     
     if (isLoading) {
         return <div className="container mx-auto px-4 md:px-6 py-12"><Skeleton className="h-[50vh] w-full" /></div>;
@@ -268,7 +291,7 @@ export default function DashboardPage() {
         if (!activeItem) return null;
 
         if (activeItem.type === 'order') {
-            const orderItems = activeItem.mode === 'add' ? newOrderItems : activeItem.data.details || [];
+            const orderItems = newOrderItems;
             const orderItemsCount = orderItems.reduce((acc: number, item: any) => acc + item.quantity, 0);
             const orderTotal = orderItems.reduce((acc: number, item: any) => acc + item.price * item.quantity, 0);
             
@@ -282,23 +305,6 @@ export default function DashboardPage() {
                 };
                 setNewOrderItems(prev => [...prev, newItem]);
             }
-
-            const handleUpdateOrderItem = (index: number, field: keyof CartItem, value: any) => {
-                const updatedItems = [...newOrderItems];
-                if (field === 'quantity') {
-                    updatedItems[index].quantity = Math.max(1, parseInt(value, 10));
-                } else if (field === 'color') {
-                    updatedItems[index].color = value;
-                } else if (field === 'lensType') {
-                    updatedItems[index].lensType = value;
-                }
-                setNewOrderItems(updatedItems);
-            };
-
-            const handleRemoveOrderItem = (index: number) => {
-                setNewOrderItems(prev => prev.filter((_, i) => i !== index));
-            };
-
 
             return (
                 <>
@@ -314,7 +320,7 @@ export default function DashboardPage() {
                             <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
                             <div className="grid grid-cols-2 gap-4">
                                 <LabelledInput label="Order Date" value={activeItem.data.orderDate} onChange={(e) => handleActiveItemDataChange('orderDate', e.target.value)} disabled />
-                                <LabelledInput label="Total" type="number" value={activeItem.mode === 'add' ? orderTotal.toFixed(2) : activeItem.data.total.toFixed(2)} disabled />
+                                <LabelledInput label="Total" type="number" value={orderTotal.toFixed(2)} disabled />
                             </div>
                             <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
                              <Card>
@@ -335,12 +341,10 @@ export default function DashboardPage() {
                             <Card>
                                 <CardHeader className='pb-2'><CardTitle className="text-lg">Order Items ({orderItemsCount})</CardTitle></CardHeader>
                                 <CardContent className="space-y-3 pt-4">
-                                     {activeItem.mode === 'add' && (
-                                        <div className="space-y-2">
-                                            <Label>Add Product</Label>
-                                            <ProductSelector products={products} onProductSelect={handleAddProductToOrder} />
-                                        </div>
-                                    )}
+                                    <div className="space-y-2">
+                                        <Label>Add Product</Label>
+                                        <ProductSelector products={products} onProductSelect={handleAddProductToOrder} />
+                                    </div>
 
                                     {orderItems.length > 0 ? orderItems.map((item: any, index: number) => (
                                         <Card key={`${item.id}-${index}`} className="p-3">
@@ -349,30 +353,20 @@ export default function DashboardPage() {
                                                 <div className="flex-grow">
                                                     <p className="font-semibold">{item.name}</p>
                                                     <p className="text-sm font-medium text-right">{(item.price * item.quantity).toFixed(2)} DH</p>
-                                                    {activeItem.mode === 'add' ? (
-                                                        <div className="grid grid-cols-2 gap-2 mt-2">
-                                                            <Input type="number" value={item.quantity} onChange={(e) => handleUpdateOrderItem(index, 'quantity', e.target.value)} placeholder="Qty" className="h-8"/>
-                                                            <Select value={item.color} onValueChange={(value) => handleUpdateOrderItem(index, 'color', value)}>
-                                                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {products.find(p => p.id === item.id)?.colors.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <Input value={item.lensType} onChange={(e) => handleUpdateOrderItem(index, 'lensType', e.target.value)} placeholder="Lens Type" className="h-8 col-span-2"/>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                                            <p className="text-xs text-muted-foreground">Color: {item.color}</p>
-                                                            <p className="text-xs text-muted-foreground">Lens: {item.lensType}</p>
-                                                        </>
-                                                    )}
+                                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                                        <Input type="number" value={item.quantity} onChange={(e) => handleUpdateOrderItem(index, 'quantity', e.target.value)} placeholder="Qty" className="h-8"/>
+                                                        <Select value={item.color} onValueChange={(value) => handleUpdateOrderItem(index, 'color', value)}>
+                                                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                {products.find(p => p.id === item.id)?.colors.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Input value={item.lensType} onChange={(e) => handleUpdateOrderItem(index, 'lensType', e.target.value)} placeholder="Lens Type" className="h-8 col-span-2"/>
+                                                    </div>
                                                 </div>
-                                                {activeItem.mode === 'add' && (
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
-                                                        <XIcon className="h-4 w-4" />
-                                                    </Button>
-                                                )}
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveOrderItem(index)}>
+                                                    <XIcon className="h-4 w-4" />
+                                                </Button>
                                             </div>
                                         </Card>
                                     )) : <p className="text-sm text-muted-foreground py-4 text-center">No items in this order.</p>}
@@ -494,7 +488,6 @@ export default function DashboardPage() {
             </TabsContent>
         </Tabs>
 
-        {/* Unified Dialog for Add/Edit/View */}
         <Dialog open={!!activeItem} onOpenChange={(isOpen) => !isOpen && setActiveItem(null)}>
             <DialogContent className="sm:max-w-4xl">
                  {renderDialogContent()}
@@ -672,163 +665,4 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
     );
 }
 
-```
-  </change>
-  <change>
-    <file>/src/components/ui/command.tsx</file>
-    <content><![CDATA[
-"use client"
-
-import * as React from "react"
-import { type DialogProps } from "@radix-ui/react-dialog"
-import { Command as CommandPrimitive } from "cmdk"
-import { Search } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-
-const Command = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive
-    ref={ref}
-    className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-      className
-    )}
-    {...props}
-  />
-))
-Command.displayName = CommandPrimitive.displayName
-
-interface CommandDialogProps extends DialogProps {}
-
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
-  return (
-    <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0 shadow-lg">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-          {children}
-        </Command>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-const CommandInput = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    <CommandPrimitive.Input
-      ref={ref}
-      className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
-    />
-  </div>
-))
-
-CommandInput.displayName = CommandPrimitive.Input.displayName
-
-const CommandList = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    {...props}
-  />
-))
-
-CommandList.displayName = CommandPrimitive.List.displayName
-
-const CommandEmpty = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Empty>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
->((props, ref) => (
-  <CommandPrimitive.Empty
-    ref={ref}
-    className="py-6 text-center text-sm"
-    {...props}
-  />
-))
-
-CommandEmpty.displayName = CommandPrimitive.Empty.displayName
-
-const CommandGroup = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Group>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Group
-    ref={ref}
-    className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
-
-CommandGroup.displayName = CommandPrimitive.Group.displayName
-
-const CommandSeparator = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Separator
-    ref={ref}
-    className={cn("-mx-1 h-px bg-border", className)}
-    {...props}
-  />
-))
-CommandSeparator.displayName = CommandPrimitive.Separator.displayName
-
-const CommandItem = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  />
-))
-
-CommandItem.displayName = CommandPrimitive.Item.displayName
-
-const CommandShortcut = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) => {
-  return (
-    <span
-      className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-CommandShortcut.displayName = "CommandShortcut"
-
-export {
-  Command,
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandSeparator,
-  CommandShortcut,
-}
+    
