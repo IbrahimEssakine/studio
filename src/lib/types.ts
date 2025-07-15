@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -23,6 +24,8 @@ export interface Order {
   status: "Pending" | "Shipped" | "Delivered" | "Cancelled";
   total: number;
   items: number;
+  details?: CartItem[];
+  shippingAddress?: any;
 }
 
 export interface Appointment {
