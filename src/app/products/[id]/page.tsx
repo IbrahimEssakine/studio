@@ -2,7 +2,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Star, Upload, CheckCircle, Calendar, Frame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { useParams } from "next/navigation";
 
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
@@ -23,8 +23,9 @@ const lensTypes = [
   { name: "Transitions® (+990 DH)", price: 990 },
 ];
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const { id: productId } = params;
+export default function ProductDetailPage() {
+  const params = useParams();
+  const productId = params.id as string;
   const { getProductById } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -37,12 +38,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   
 
   useEffect(() => {
-    const foundProduct = getProductById(productId);
-    if (foundProduct) {
-      setProduct(foundProduct);
-      if (foundProduct.colors.length > 0) {
-        setSelectedColor(foundProduct.colors[0]);
-      }
+    if (productId) {
+        const foundProduct = getProductById(productId);
+        if (foundProduct) {
+            setProduct(foundProduct);
+            if (foundProduct.colors.length > 0) {
+                setSelectedColor(foundProduct.colors[0]);
+            }
+        }
     }
   }, [getProductById, productId]);
 
