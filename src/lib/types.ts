@@ -14,6 +14,7 @@ export interface CartItem extends Product {
     quantity: number;
     color: string;
     lensType: string;
+    requiresAppointment?: boolean;
 }
 
 export interface Order {

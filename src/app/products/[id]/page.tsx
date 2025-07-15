@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
@@ -24,7 +24,7 @@ const lensTypes = [
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const { id: productId } = use(params);
+  const { id: productId } = React.use(params);
   const { getProductById } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -33,13 +33,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+  const [prescriptionOption, setPrescriptionOption] = useState("manual");
   
 
   useEffect(() => {
     const foundProduct = getProductById(productId);
     if (foundProduct) {
       setProduct(foundProduct);
-      setSelectedColor(foundProduct.colors[0]);
+      if (foundProduct.colors.length > 0) {
+        setSelectedColor(foundProduct.colors[0]);
+      }
     }
   }, [getProductById, productId]);
 
@@ -56,12 +59,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   };
 
   const handleAddToCart = () => {
+    const requiresAppointment = prescriptionOption === 'book';
     const cartItem = {
       ...product,
       price: totalPrice,
       color: selectedColor,
       lensType: selectedLens.name,
       quantity: 1,
+      requiresAppointment: requiresAppointment,
     };
     addToCart(cartItem);
     toast({
@@ -131,7 +136,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
           <div>
             <h3 className="font-semibold text-lg mb-2">Your Prescription</h3>
-            <Tabs defaultValue="manual" className="w-full">
+            <Tabs defaultValue="manual" className="w-full" onValueChange={setPrescriptionOption}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="manual">Enter Manually</TabsTrigger>
                 <TabsTrigger value="upload">Upload File</TabsTrigger>
@@ -177,15 +182,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </Card>
               </TabsContent>
               <TabsContent value="book" className="pt-4">
-                <Card>
-                  <CardContent className="pt-6 space-y-4 text-center">
-                    <p className="text-muted-foreground">Need a new prescription or a check-up?</p>
-                    <Button asChild>
-                      <Link href="/book-appointment">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Book an Appointment
-                      </Link>
-                    </Button>
+                 <Card>
+                  <CardContent className="pt-6 space-y-2 text-center">
+                    <Calendar className="mx-auto h-10 w-10 text-primary" />
+                    <h4 className="font-semibold">Need a Prescription?</h4>
+                    <p className="text-muted-foreground">
+                      An appointment will be added to your order. You can schedule the date and time during checkout.
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>

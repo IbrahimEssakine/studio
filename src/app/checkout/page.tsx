@@ -20,12 +20,18 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { useOrders } from "@/context/order-context";
+import { useAppointments } from "@/context/appointment-context";
 import { useUser } from "@/context/user-context";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const checkoutSchema = z.object({
+const baseSchema = z.object({
   // Shipping info
   email: z.string().email(),
   firstName: z.string().min(1, "First name is required"),
@@ -35,12 +41,28 @@ const checkoutSchema = z.object({
   zip: z.string().min(5, "A valid ZIP code is required"),
 });
 
+const appointmentSchema = z.object({
+  appointmentDate: z.date({ required_error: "An appointment date is required." }),
+  appointmentTime: z.string({ required_error: "An appointment time is required." }),
+});
+
+const availableTimes = [
+  "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+  "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM", "03:00 PM", "03:30 PM",
+  "04:00 PM",
+];
+
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { addAppointment } = useAppointments();
   const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+
+  const needsAppointment = useMemo(() => cart.some(item => item.requiresAppointment), [cart]);
+
+  const checkoutSchema = needsAppointment ? baseSchema.extend(appointmentSchema.shape) : baseSchema;
   
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = 50.00;
@@ -61,6 +83,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (user) {
       form.reset({
+        ...form.getValues(),
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -84,6 +107,16 @@ export default function CheckoutPage() {
         shippingAddress: values,
     };
     addOrder(newOrder);
+
+    if (needsAppointment && 'appointmentDate' in values && 'appointmentTime' in values) {
+      addAppointment({
+        name: `${values.firstName} ${values.lastName}`,
+        email: values.email,
+        phone: user?.phone || '',
+        date: values.appointmentDate!,
+        time: values.appointmentTime!,
+      });
+    }
 
     toast({
       title: "Order Placed!",
@@ -147,6 +180,76 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
+            {needsAppointment && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-headline flex items-center gap-2"><CalendarIcon className="w-6 h-6" /> Schedule Your Appointment</CardTitle>
+                  <CardDescription>Select a date and time for your eye exam or fitting.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="appointmentDate"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Preferred Date</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                      <FormField
+                          control={form.control}
+                          name="appointmentTime"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Preferred Time</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Select a time slot" />
+                                      </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                      {availableTimes.map(time => (
+                                          <SelectItem key={time} value={time}>{time}</SelectItem>
+                                      ))}
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                    </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Alert>
               <Info className="h-4 w-4" />
               <AlertTitle>Payment on Delivery</AlertTitle>
@@ -176,6 +279,12 @@ export default function CheckoutPage() {
                     <div className="flex-grow">
                       <p className="font-semibold">{item.name}</p>
                       <p className="text-sm text-muted-foreground">{item.color}, {item.lensType}</p>
+                       {item.requiresAppointment && (
+                          <div className="flex items-center text-xs text-primary mt-1">
+                            <CalendarIcon className="w-3 h-3 mr-1" />
+                            <span>Appointment included</span>
+                          </div>
+                        )}
                     </div>
                     <p className="font-medium">{(item.price * item.quantity).toFixed(2)} DH</p>
                   </div>

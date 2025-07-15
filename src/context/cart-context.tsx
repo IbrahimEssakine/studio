@@ -5,7 +5,7 @@ import type { CartItem } from '@/lib/types';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'> & { requiresAppointment?: boolean }) => void;
   removeFromCart: (itemId: string, color: string, lensType: string) => void;
   updateQuantity: (itemId: string, color: string, lensType: string, quantity: number) => void;
   clearCart: () => void;
@@ -39,7 +39,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, isInitialLoad]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+  const addToCart = (item: Omit<CartItem, 'quantity'> & { requiresAppointment?: boolean }) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(
         cartItem => cartItem.id === item.id && cartItem.color === item.color && cartItem.lensType === item.lensType
@@ -47,7 +47,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (existingItem) {
         return prevCart.map(cartItem =>
           cartItem.id === item.id && cartItem.color === item.color && cartItem.lensType === item.lensType
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            ? { ...cartItem, quantity: cartItem.quantity + 1, requiresAppointment: item.requiresAppointment || cartItem.requiresAppointment }
             : cartItem
         );
       }
