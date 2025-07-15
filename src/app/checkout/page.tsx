@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { useOrders } from "@/context/order-context";
 
 const checkoutSchema = z.object({
   // Shipping info
@@ -34,6 +35,7 @@ const checkoutSchema = z.object({
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
+  const { addOrder } = useOrders();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -54,7 +56,18 @@ export default function CheckoutPage() {
   });
 
   function onSubmit(values: z.infer<typeof checkoutSchema>) {
-    console.log("Order submitted:", values);
+    const newOrder = {
+        id: `ORD${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        customerName: `${values.firstName} ${values.lastName}`,
+        orderDate: new Date().toISOString().split('T')[0],
+        status: "Pending" as const,
+        total,
+        items: cart.reduce((acc, item) => acc + item.quantity, 0),
+        details: cart,
+        shippingAddress: values,
+    };
+    addOrder(newOrder);
+
     toast({
       title: "Order Placed!",
       description: "Thank you for your purchase. We've sent a confirmation to your email.",

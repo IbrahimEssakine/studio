@@ -32,23 +32,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Order, Appointment } from "@/lib/types";
-
-// Mock data
-const orders: Order[] = [
-  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 2800, items: 2 },
-  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 1500, items: 1 },
-  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 4200, items: 3 },
-  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 950, items: 1 },
-];
-
-const appointments: Appointment[] = [
-    { id: "APT001", name: "Emily Brown", email: "emily@example.com", phone: "111-222-3333", date: new Date("2023-11-05"), time: "10:00 AM", status: "Confirmed" },
-    { id: "APT002", name: "Michael Clark", email: "michael@example.com", phone: "444-555-6666", date: new Date("2023-11-06"), time: "02:30 PM", status: "Pending" },
-    { id: "APT003", name: "Sarah Davis", email: "sarah@example.com", phone: "777-888-9999", date: new Date("2023-11-02"), time: "11:00 AM", status: "Cancelled" },
-];
+import { useOrders } from "@/context/order-context";
+import { useAppointments } from "@/context/appointment-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardPage() {
-    
+    const { orders, deleteOrder } = useOrders();
+    const { appointments, deleteAppointment } = useAppointments();
+    const { toast } = useToast();
+
     const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
         switch (status) {
             case 'Delivered':
@@ -62,7 +54,17 @@ export default function DashboardPage() {
             default:
                 return 'outline';
         }
-    }
+    };
+
+    const handleDeleteOrder = (id: string) => {
+        deleteOrder(id);
+        toast({ title: "Order Deleted", description: `Order ${id} has been removed.` });
+    };
+
+    const handleDeleteAppointment = (id: string) => {
+        deleteAppointment(id);
+        toast({ title: "Appointment Deleted", description: `Appointment ${id} has been removed.` });
+    };
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
@@ -74,8 +76,8 @@ export default function DashboardPage() {
         <Tabs defaultValue="orders">
             <div className="flex items-center">
                 <TabsList>
-                    <TabsTrigger value="orders">Orders</TabsTrigger>
-                    <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                    <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
+                    <TabsTrigger value="appointments">Appointments ({appointments.length})</TabsTrigger>
                 </TabsList>
                 <div className="ml-auto flex items-center gap-2">
                     <Button size="sm" className="h-8 gap-1">
@@ -106,43 +108,49 @@ export default function DashboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {orders.map(order => (
-                                    <TableRow key={order.id}>
-                                        <TableCell className="font-medium">{order.id}</TableCell>
-                                        <TableCell>{order.customerName}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={getBadgeVariant(order.status)}>{order.status}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">DH{order.total.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>This action cannot be undone. This will permanently delete the order.</AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction>Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
+                                {orders.length > 0 ? (
+                                    orders.map(order => (
+                                        <TableRow key={order.id}>
+                                            <TableCell className="font-medium">{order.id}</TableCell>
+                                            <TableCell>{order.customerName}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getBadgeVariant(order.status)}>{order.status}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">DH{order.total.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => toast({ title: "Edit action is not yet implemented."})}>Edit</DropdownMenuItem>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>This action cannot be undone. This will permanently delete the order.</AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">No orders found.</TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </CardContent>
@@ -168,44 +176,50 @@ export default function DashboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {appointments.map(apt => (
-                                    <TableRow key={apt.id}>
-                                        <TableCell className="font-medium">{apt.name}</TableCell>
-                                        <TableCell>{apt.date.toLocaleDateString()} at {apt.time}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={getBadgeVariant(apt.status)}>{apt.status}</Badge>
-                                        </TableCell>
-                                        <TableCell>{apt.email}</TableCell>
-                                        <TableCell className="text-right">
-                                        <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                                    <DropdownMenuItem>Confirm</DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>This action cannot be undone. This will permanently delete the appointment.</AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction>Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
+                                {appointments.length > 0 ? (
+                                    appointments.map(apt => (
+                                        <TableRow key={apt.id}>
+                                            <TableCell className="font-medium">{apt.name}</TableCell>
+                                            <TableCell>{new Date(apt.date).toLocaleDateString()} at {apt.time}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getBadgeVariant(apt.status)}>{apt.status}</Badge>
+                                            </TableCell>
+                                            <TableCell>{apt.email}</TableCell>
+                                            <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => toast({ title: "Edit action is not yet implemented."})}>Edit</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => toast({ title: "Confirm action is not yet implemented."})}>Confirm</DropdownMenuItem>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>This action cannot be undone. This will permanently delete the appointment.</AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteAppointment(apt.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center h-24">No appointments found.</TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </CardContent>

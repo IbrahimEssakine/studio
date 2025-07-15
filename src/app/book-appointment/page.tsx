@@ -23,6 +23,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { useAppointments } from "@/context/appointment-context";
 
 const appointmentSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -40,6 +41,7 @@ const availableTimes = [
 
 export default function AppointmentPage() {
     const { toast } = useToast();
+    const { addAppointment } = useAppointments();
   const form = useForm<z.infer<typeof appointmentSchema>>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
@@ -50,7 +52,13 @@ export default function AppointmentPage() {
   });
 
   function onSubmit(values: z.infer<typeof appointmentSchema>) {
-    console.log(values);
+    const newAppointment = {
+        id: `APT${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        status: "Pending" as const,
+        ...values,
+    };
+    addAppointment(newAppointment);
+
     toast({
         title: "Appointment Booked!",
         description: `We've scheduled your appointment for ${format(values.date, "PPP")} at ${values.time}.`,

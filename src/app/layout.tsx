@@ -6,6 +6,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/context/cart-context";
+import { OrderProvider } from "@/context/order-context";
+import { AppointmentProvider } from "@/context/appointment-context";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -45,14 +47,18 @@ export default function RootLayout({
           playfairDisplay.variable
         )}
       >
-        <CartProvider>
-            <div className="relative flex min-h-dvh flex-col bg-background">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            </div>
-            <Toaster />
-        </CartProvider>
+        <OrderProvider>
+          <AppointmentProvider>
+            <CartProvider>
+                <div className="relative flex min-h-dvh flex-col bg-background">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+                </div>
+                <Toaster />
+            </CartProvider>
+          </AppointmentProvider>
+        </OrderProvider>
       </body>
     </html>
   );
