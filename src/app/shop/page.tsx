@@ -19,21 +19,21 @@ import {
 } from "@/components/ui/sheet";
 
 const allProducts: Product[] = [
-  { id: "1", name: "Classic Aviator", price: 150, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Gold", "Silver"], rating: 4.5, reviews: 120 },
-  { id: "2", name: "Modern Wayfarer", price: 130, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Black", "Tortoise"], rating: 4.8, reviews: 250 },
-  { id: "3", name: "Retro Round", price: 120, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Bronze", "Matte Black"], rating: 4.6, reviews: 95 },
-  { id: "4", name: "Minimalist Frames", price: 180, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Titanium", "Clear"], rating: 4.9, reviews: 180 },
-  { id: "5", name: "Cat-Eye Chic", price: 165, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Rose Gold", "Black"], rating: 4.7, reviews: 150 },
-  { id: "6", name: "Scholarly Specs", price: 95, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Silver", "Gunmetal"], rating: 4.4, reviews: 88 },
-  { id: "7", name: "Sporty Wraparounds", price: 190, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Red", "Blue"], rating: 4.8, reviews: 210 },
-  { id: "8", name: "Bold Acetate", price: 210, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Crystal", "Emerald Green"], rating: 4.9, reviews: 300 },
+  { id: "1", name: "Classic Aviator", price: 1500, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Gold", "Silver"], rating: 4.5, reviews: 120 },
+  { id: "2", name: "Modern Wayfarer", price: 1300, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Black", "Tortoise"], rating: 4.8, reviews: 250 },
+  { id: "3", name: "Retro Round", price: 1200, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Bronze", "Matte Black"], rating: 4.6, reviews: 95 },
+  { id: "4", name: "Minimalist Frames", price: 1800, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Titanium", "Clear"], rating: 4.9, reviews: 180 },
+  { id: "5", name: "Cat-Eye Chic", price: 1650, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Rose Gold", "Black"], rating: 4.7, reviews: 150 },
+  { id: "6", name: "Scholarly Specs", price: 950, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Silver", "Gunmetal"], rating: 4.4, reviews: 88 },
+  { id: "7", name: "Sporty Wraparounds", price: 1900, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Red", "Blue"], rating: 4.8, reviews: 210 },
+  { id: "8", name: "Bold Acetate", price: 2100, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Crystal", "Emerald Green"], rating: 4.9, reviews: 300 },
 ];
 
 const categories = ["Sunglasses", "Eyeglasses"];
 const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"];
 
 export default function ShopPage() {
-  const [priceRange, setPriceRange] = useState([0, 250]);
+  const [priceRange, setPriceRange] = useState([0, 2500]);
   
   const Filters = () => (
     <Card>
@@ -55,14 +55,14 @@ export default function ShopPage() {
         <div>
           <h3 className="font-semibold mb-3">Price Range</h3>
           <Slider
-            defaultValue={[0, 250]}
-            max={500}
-            step={10}
+            defaultValue={[0, 2500]}
+            max={5000}
+            step={100}
             onValueChange={(value) => setPriceRange(value)}
           />
           <div className="flex justify-between text-sm text-muted-foreground mt-2">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
+            <span>DH{priceRange[0]}</span>
+            <span>DH{priceRange[1]}</span>
           </div>
         </div>
         <div>

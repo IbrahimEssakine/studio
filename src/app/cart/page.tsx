@@ -13,7 +13,7 @@ export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shipping = 5.00; // Example shipping cost
+  const shipping = 50.00; // Example shipping cost
   const total = subtotal + shipping;
 
   if (cart.length === 0) {
@@ -72,7 +72,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <div className="flex flex-col justify-between items-end">
-                  <p className="font-bold text-lg">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-bold text-lg">DH{(item.price * item.quantity).toFixed(2)}</p>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -95,16 +95,16 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>DH{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>${shipping.toFixed(2)}</span>
+                <span>DH{shipping.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>DH{total.toFixed(2)}</span>
               </div>
             </CardContent>
             <CardFooter>

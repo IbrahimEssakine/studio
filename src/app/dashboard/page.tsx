@@ -35,10 +35,10 @@ import type { Order, Appointment } from "@/lib/types";
 
 // Mock data
 const orders: Order[] = [
-  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 280, items: 2 },
-  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 150, items: 1 },
-  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 420, items: 3 },
-  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 95, items: 1 },
+  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 2800, items: 2 },
+  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 1500, items: 1 },
+  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 4200, items: 3 },
+  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 950, items: 1 },
 ];
 
 const appointments: Appointment[] = [
@@ -113,7 +113,7 @@ export default function DashboardPage() {
                                         <TableCell>
                                             <Badge variant={getBadgeVariant(order.status)}>{order.status}</Badge>
                                         </TableCell>
-                                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right">DH{order.total.toFixed(2)}</TableCell>
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
