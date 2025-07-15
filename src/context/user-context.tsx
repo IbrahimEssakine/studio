@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 const mockUsers: User[] = [
     {
         id: 'admin-user',
-        email: 'purga2ryx@gmail.com',
+        email: 'purgra2ryx@gmail.com',
         password: 'admin123', // In a real app, this would be a hash
         firstName: 'Admin',
         lastName: 'User',
