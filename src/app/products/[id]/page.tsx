@@ -1,12 +1,16 @@
+
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { Star, Upload, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 const product = {
   id: "2",
@@ -103,23 +107,66 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
 
           <div>
-            <h3 className="font-semibold text-lg mb-2">Prescription</h3>
-            <div className="relative">
-              <Button asChild variant="outline" className="w-full">
-                <Label htmlFor="prescription-upload" className="cursor-pointer flex items-center justify-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  <span>Upload Prescription</span>
-                </Label>
-              </Button>
-              <input id="prescription-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
-            </div>
-            {prescriptionFile && (
-              <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4" />
-                {prescriptionFile.name} uploaded successfully.
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">Accepted formats: PDF, JPG, PNG. Or email it to us later.</p>
+            <h3 className="font-semibold text-lg mb-2">Your Prescription</h3>
+             <Tabs defaultValue="manual" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="manual">Enter Manually</TabsTrigger>
+                    <TabsTrigger value="upload">Upload File</TabsTrigger>
+                    <TabsTrigger value="book">Book Appointment</TabsTrigger>
+                </TabsList>
+                <TabsContent value="manual" className="pt-4">
+                    <Card>
+                        <CardContent className="pt-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="od">OD (Right Eye)</Label>
+                                    <Input id="od" placeholder="e.g. -1.25" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="os">OS (Left Eye)</Label>
+                                    <Input id="os" placeholder="e.g. -1.50" />
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Please enter the SPH value for each eye.</p>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="upload" className="pt-4">
+                    <Card>
+                         <CardContent className="pt-6 space-y-4">
+                            <div className="relative">
+                                <Button asChild variant="outline" className="w-full">
+                                    <Label htmlFor="prescription-upload" className="cursor-pointer flex items-center justify-center gap-2">
+                                    <Upload className="w-4 h-4" />
+                                    <span>Upload Prescription</span>
+                                    </Label>
+                                </Button>
+                                <input id="prescription-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
+                                </div>
+                                {prescriptionFile && (
+                                <p className="mt-2 text-sm text-green-600 flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    {prescriptionFile.name} uploaded successfully.
+                                </p>
+                                )}
+                                <p className="text-xs text-muted-foreground mt-2">Accepted formats: PDF, JPG, PNG. Or email it to us later.</p>
+                         </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="book" className="pt-4">
+                    <Card>
+                         <CardContent className="pt-6 space-y-4 text-center">
+                            <p className="text-muted-foreground">Need a new prescription or a check-up?</p>
+                            <Button asChild>
+                                <Link href="/book-appointment">
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    Book an Appointment
+                                </Link>
+                            </Button>
+                         </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
           </div>
           
           <Card className="bg-muted/50">
