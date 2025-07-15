@@ -42,5 +42,92 @@
     "phone": "Phone",
     "whatsapp": "Whatsapp",
     "copyright": "© {year} Agharas Vision. All rights reserved."
+  },
+  "productPage": {
+    "loading": "Loading...",
+    "reviews": "reviews",
+    "color": "Color",
+    "step1": "Step 1: Choose your glasses type",
+    "step2": "Step 2: Provide your prescription",
+    "step3": "Step 3: Choose your lens type",
+    "glassesTypes": {
+      "withCorrection": "With Prescription",
+      "blueLight": "Blue-Light Filtering",
+      "sunglasses": "Sunglasses",
+      "both": "Blue-Light & Sunglasses",
+      "framesOnly": "Frames Only"
+    },
+    "prescriptionMethods": {
+      "manual": "Enter Manually",
+      "upload": "Upload File",
+      "book": "Book Appointment"
+    },
+    "prescriptionManual": {
+      "od": "OD (Right Eye)",
+      "os": "OS (Left Eye)"
+    },
+    "prescriptionUpload": {
+      "button": "Upload Prescription",
+      "success": "uploaded successfully."
+    },
+    "lensTypes": {
+      "amincis_antireflets_bleue": {
+        "name": "Thinned Anti-reflective Blue",
+        "details": "1.56 - Correction between 0.25 and 1",
+        "warranty": "1 YEAR"
+      },
+      "super_amincis_antireflets_bleue": {
+        "name": "Super Thinned Anti-reflective Blue",
+        "details": "1.6 - Correction between 1 and 3",
+        "warranty": "1 YEAR"
+      },
+      "ultra_amincis_antireflets_bleue": {
+        "name": "Ultra Thinned Anti-reflective Blue",
+        "details": "1.67 - Correction of +/- 4 or more",
+        "warranty": "1 YEAR"
+      },
+      "premium_amincis": {
+        "name": "PREMIUM Thinned Lenses",
+        "details": "1.56 - Correction between 0.25 and 1",
+        "warranty": "2 YEARS"
+      },
+      "premium_super_amincis": {
+        "name": "PREMIUM Super Thinned Lenses",
+        "details": "1.6 - Correction of +/- 3 or more",
+        "warranty": "2 YEARS"
+      },
+      "premium_ultra_amincis": {
+        "name": "PREMIUM Ultra Thinned Lenses",
+        "details": "1.67 - Correction of +/- 4 or more",
+        "warranty": "2 YEARS"
+      },
+      "photogray_antireflets_bleue": {
+        "name": "Thinned Photogray Anti-reflective Blue Lenses",
+        "details": "Transition lenses",
+        "warranty": "2 YEARS"
+      },
+      "demander_devis": {
+        "name": "Request a quote (call)",
+        "details": "For large measurements",
+        "warranty": "N/A"
+      }
+    },
+    "warrantyLabel": "WARRANTY",
+    "appointmentAlert": {
+      "title": "Appointment Included",
+      "description": "An appointment will be added to your order. You can schedule the date and time during checkout."
+    },
+    "total": "Total:",
+    "addToCart": "Add to Cart",
+    "toast": {
+      "title": "Added to Cart",
+      "description": "{productName} has been added to your cart."
+    },
+    "cart": {
+      "framesOnly": "Frames Only",
+      "appointmentScheduled": "Appointment to be scheduled",
+      "prescriptionLens": "Prescription Lens",
+      "custom": "Custom"
+    }
   }
 }

@@ -42,5 +42,92 @@
     "phone": "Téléphone",
     "whatsapp": "Whatsapp",
     "copyright": "© {year} Agharas Vision. Tous droits réservés."
+  },
+  "productPage": {
+    "loading": "Chargement...",
+    "reviews": "avis",
+    "color": "Couleur",
+    "step1": "Étape 1 : Choisissez votre type de lunettes",
+    "step2": "Étape 2 : Fournissez votre ordonnance",
+    "step3": "Étape 3 : Choisissez votre type de verre",
+    "glassesTypes": {
+      "withCorrection": "Avec Correction",
+      "blueLight": "Anti-lumière bleue",
+      "sunglasses": "Anti-solaire",
+      "both": "Les deux",
+      "framesOnly": "Monture seule"
+    },
+    "prescriptionMethods": {
+      "manual": "Entrer manuellement",
+      "upload": "Télécharger un fichier",
+      "book": "Prendre rendez-vous"
+    },
+    "prescriptionManual": {
+      "od": "OD (Œil Droit)",
+      "os": "OG (Œil Gauche)"
+    },
+    "prescriptionUpload": {
+      "button": "Télécharger l'ordonnance",
+      "success": "téléchargé avec succès."
+    },
+    "lensTypes": {
+      "amincis_antireflets_bleue": {
+        "name": "Amincis Antireflets bleue",
+        "details": "1.56 - Correction entre 0.25 et 1",
+        "warranty": "1 AN"
+      },
+      "super_amincis_antireflets_bleue": {
+        "name": "Super Amincis Antireflets bleue",
+        "details": "1.6 - Correction entre 1 et 3",
+        "warranty": "1 AN"
+      },
+      "ultra_amincis_antireflets_bleue": {
+        "name": "Ultra amincis Antireflets Bleue",
+        "details": "1.67 - correction de +/- 4 ou plus",
+        "warranty": "1 AN"
+      },
+      "premium_amincis": {
+        "name": "Verres PREMIUM amincis",
+        "details": "1.56 - Correction entre 0.25 et 1",
+        "warranty": "2 ANS"
+      },
+      "premium_super_amincis": {
+        "name": "Verres PREMIUM Super Amincis",
+        "details": "1.6 - Correction de +/- 3 ou plus",
+        "warranty": "2 ANS"
+      },
+      "premium_ultra_amincis": {
+        "name": "Verres PREMIUM Ultra amincis",
+        "details": "1.67 - correction de +/- 4 ou plus",
+        "warranty": "2 ANS"
+      },
+      "photogray_antireflets_bleue": {
+        "name": "Verres 1.56 amincis photogray antireflets bleue",
+        "details": "Verres de transition",
+        "warranty": "2 ANS"
+      },
+      "demander_devis": {
+        "name": "Demander un devis (appel)",
+        "details": "Pour les grandes mesures",
+        "warranty": "N/A"
+      }
+    },
+    "warrantyLabel": "GARANTIE",
+    "appointmentAlert": {
+      "title": "Rendez-vous inclus",
+      "description": "Un rendez-vous sera ajouté à votre commande. Vous pouvez programmer la date et l'heure lors du paiement."
+    },
+    "total": "Total :",
+    "addToCart": "Ajouter au panier",
+    "toast": {
+      "title": "Ajouté au panier",
+      "description": "{productName} a été ajouté à votre panier."
+    },
+    "cart": {
+      "framesOnly": "Monture seule",
+      "appointmentScheduled": "Rendez-vous à programmer",
+      "prescriptionLens": "Verre de prescription",
+      "custom": "Personnalisé"
+    }
   }
 }

@@ -42,5 +42,92 @@
     "phone": "الهاتف",
     "whatsapp": "واتساب",
     "copyright": "© {year} أغاراس فيجن. جميع الحقوق محفوظة."
+  },
+  "productPage": {
+    "loading": "جار التحميل...",
+    "reviews": "تقييمات",
+    "color": "اللون",
+    "step1": "الخطوة 1: اختر نوع نظارتك",
+    "step2": "الخطوة 2: قدم وصفتك الطبية",
+    "step3": "الخطوة 3: اختر نوع العدسة",
+    "glassesTypes": {
+      "withCorrection": "مع تصحيح",
+      "blueLight": "حماية من الضوء الأزرق",
+      "sunglasses": "حماية من الشمس",
+      "both": "كلاهما",
+      "framesOnly": "إطار فقط"
+    },
+    "prescriptionMethods": {
+      "manual": "أدخل يدوياً",
+      "upload": "تحميل ملف",
+      "book": "احجز موعدًا"
+    },
+    "prescriptionManual": {
+      "od": "العين اليمنى",
+      "os": "العين اليسرى"
+    },
+    "prescriptionUpload": {
+      "button": "تحميل الوصفة الطبية",
+      "success": "تم التحميل بنجاح."
+    },
+    "lensTypes": {
+      "amincis_antireflets_bleue": {
+        "name": "رفيعة مضادة للانعكاس والأزرق",
+        "details": "1.56 - تصحيح بين 0.25 و 1",
+        "warranty": "سنة واحدة"
+      },
+      "super_amincis_antireflets_bleue": {
+        "name": "فائقة الرقة مضادة للانعكاس والأزرق",
+        "details": "1.6 - تصحيح بين 1 و 3",
+        "warranty": "سنة واحدة"
+      },
+      "ultra_amincis_antireflets_bleue": {
+        "name": "فائقة الرقة جداً مضادة للانعكاس والأزرق",
+        "details": "1.67 - تصحيح +/- 4 أو أكثر",
+        "warranty": "سنة واحدة"
+      },
+      "premium_amincis": {
+        "name": "عدسات بريميوم رفيعة",
+        "details": "1.56 - تصحيح بين 0.25 و 1",
+        "warranty": "سنتان"
+      },
+      "premium_super_amincis": {
+        "name": "عدسات بريميوم فائقة الرقة",
+        "details": "1.6 - تصحيح +/- 3 أو أكثر",
+        "warranty": "سنتان"
+      },
+      "premium_ultra_amincis": {
+        "name": "عدسات بريميوم فائقة الرقة جداً",
+        "details": "1.67 - تصحيح +/- 4 أو أكثر",
+        "warranty": "سنتان"
+      },
+      "photogray_antireflets_bleue": {
+        "name": "عدسات فوتوغرافية رفيعة مضادة للانعكاس والأزرق",
+        "details": "عدسات متغيرة اللون",
+        "warranty": "سنتان"
+      },
+      "demander_devis": {
+        "name": "اطلب عرض سعر (اتصال)",
+        "details": "للقياسات الكبيرة",
+        "warranty": "غير متاح"
+      }
+    },
+    "warrantyLabel": "ضمان",
+    "appointmentAlert": {
+      "title": "يشمل موعد",
+      "description": "سيتم إضافة موعد إلى طلبك. يمكنك تحديد التاريخ والوقت أثناء الدفع."
+    },
+    "total": "المجموع:",
+    "addToCart": "أضف إلى السلة",
+    "toast": {
+      "title": "أضيف إلى السلة",
+      "description": "تمت إضافة {productName} إلى سلتك."
+    },
+    "cart": {
+      "framesOnly": "إطار فقط",
+      "appointmentScheduled": "سيتم تحديد موعد",
+      "prescriptionLens": "عدسة طبية",
+      "custom": "مخصص"
+    }
   }
 }

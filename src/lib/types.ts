@@ -55,6 +55,4 @@ export interface User {
 export interface LensTypeOption {
   name: string;
   price: number;
-  details: string;
-  warranty: string;
 }
