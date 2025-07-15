@@ -34,7 +34,7 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [prescriptionOption, setPrescriptionOption] = useState("none");
+  const [prescriptionOption, setPrescriptionOption] = useState("manual");
   
 
   useEffect(() => {
@@ -130,25 +130,14 @@ export default function ProductDetailPage() {
 
           <div>
             <h3 className="font-semibold text-lg mb-2">Prescription Options</h3>
-            <Tabs defaultValue="none" className="w-full" onValueChange={setPrescriptionOption}>
+            <Tabs defaultValue="manual" className="w-full" onValueChange={setPrescriptionOption}>
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="none">Frames Only</TabsTrigger>
                 <TabsTrigger value="manual">Enter Manually</TabsTrigger>
                 <TabsTrigger value="upload">Upload File</TabsTrigger>
                 <TabsTrigger value="book">Book Appointment</TabsTrigger>
+                <TabsTrigger value="none">Frames Only</TabsTrigger>
               </TabsList>
-               <TabsContent value="none" className="pt-4">
-                 <Card>
-                  <CardContent className="pt-6 space-y-2 text-center">
-                    <Frame className="mx-auto h-10 w-10 text-primary" />
-                    <h4 className="font-semibold">Frames Only</h4>
-                    <p className="text-muted-foreground">
-                      You've selected to purchase the frames only, without prescription lenses.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="manual" className="pt-4">
+               <TabsContent value="manual" className="pt-4">
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                      <div className="space-y-2">
@@ -224,6 +213,17 @@ export default function ProductDetailPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+              <TabsContent value="none" className="pt-4">
+                 <Card>
+                  <CardContent className="pt-6 space-y-2 text-center">
+                    <Frame className="mx-auto h-10 w-10 text-primary" />
+                    <h4 className="font-semibold">Frames Only</h4>
+                    <p className="text-muted-foreground">
+                      You've selected to purchase the frames only, without prescription lenses.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </div>
 
@@ -240,3 +240,5 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+
+    
