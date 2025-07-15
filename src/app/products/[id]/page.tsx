@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
@@ -24,6 +24,7 @@ const lensTypes = [
 ];
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { id: productId } = use(params);
   const { getProductById } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -33,7 +34,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
   
-  const productId = params.id;
 
   useEffect(() => {
     const foundProduct = getProductById(productId);
