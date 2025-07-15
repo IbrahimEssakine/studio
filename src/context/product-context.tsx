@@ -18,7 +18,7 @@ const mockProducts: Product[] = [
 interface ProductContextType {
   products: Product[];
   getProductById: (productId: string) => Product | undefined;
-  addProduct: (product: Omit<Product, 'id'>) => void;
+  addProduct: (product: Product) => { success: boolean, message: string };
   updateProduct: (productId: string, updatedProduct: Partial<Product>) => void;
   deleteProduct: (productId: string) => void;
 }
@@ -58,12 +58,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return products.find(p => p.id === productId);
   };
 
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-        ...product,
-        id: `PROD${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-    };
-    setProducts(prevProducts => [newProduct, ...prevProducts]);
+  const addProduct = (product: Product): { success: boolean, message: string } => {
+    const existingProduct = products.find(p => p.id === product.id);
+    if (existingProduct) {
+        return { success: false, message: 'A product with this ID already exists.' };
+    }
+    setProducts(prevProducts => [product, ...prevProducts]);
+    return { success: true, message: 'Product added successfully.' };
   };
 
   const updateProduct = (productId: string, updatedProduct: Partial<Product>) => {

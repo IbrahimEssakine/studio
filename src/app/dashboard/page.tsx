@@ -45,7 +45,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +67,7 @@ const userRoles: User['role'][] = ["customer", "admin"];
 
 const initialNewOrderState: Omit<Order, 'id' | 'orderDate' | 'items' | 'details'> = { customerName: '', status: 'Pending', total: 0, shippingAddress: { email: '', name: '', phone: '', address: '' }};
 const initialNewAppointmentState: Omit<Appointment, 'id' | 'status'> = { name: '', email: '', phone: '', date: new Date(), time: '' };
-const initialNewProductState: Omit<Product, 'id'> = { name: '', price: 0, category: 'Eyeglasses', image: 'https://placehold.co/600x400.png', colors: [], rating: 0, reviews: 0, description: '' };
+const initialNewProductState: Product = { id: '', name: '', price: 0, category: 'Eyeglasses', image: '', colors: [], rating: 0, reviews: 0, description: '' };
 const initialNewUserState: Omit<User, 'id'> = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '', role: 'customer' };
 
 
@@ -103,6 +103,7 @@ export default function DashboardPage() {
     const [newAppointment, setNewAppointment] = useState(initialNewAppointmentState);
     const [newProduct, setNewProduct] = useState(initialNewProductState);
     const [newUser, setNewUser] = useState(initialNewUserState);
+    const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
 
     useEffect(() => {
         // user context might take a moment to load from session storage
@@ -112,7 +113,10 @@ export default function DashboardPage() {
             }
             if (user === null) {
                 router.push('/login');
-            } else {
+            } else if (user.role !== 'admin') {
+                router.push('/access-denied');
+            }
+             else {
                 setIsLoading(false);
             }
         }, 100); // Give a brief moment for user context to initialize
@@ -140,7 +144,11 @@ export default function DashboardPage() {
         switch(activeTab) {
             case 'orders': setAddOrderDialogOpen(true); break;
             case 'appointments': setAddAppointmentDialogOpen(true); break;
-            case 'products': setAddProductDialogOpen(true); break;
+            case 'products': 
+                setNewProduct(initialNewProductState);
+                setNewProductImageFile(null);
+                setAddProductDialogOpen(true); 
+                break;
             case 'users': setAddUserDialogOpen(true); break;
         }
     }
@@ -216,10 +224,31 @@ export default function DashboardPage() {
     }
 
     const handleAddProduct = () => {
-        addProduct(newProduct);
-        toast({ title: "Product Added", description: `Product ${newProduct.name} has been created.` });
-        setAddProductDialogOpen(false);
-        setNewProduct(initialNewProductState);
+        if (!newProduct.id.trim() || !newProduct.name.trim() || !newProductImageFile) {
+            toast({ title: "Error", description: "Product ID, Name, and Image are required.", variant: "destructive" });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(newProductImageFile);
+        reader.onloadend = () => {
+            const imageDataUrl = reader.result as string;
+            const productToAdd: Product = { ...newProduct, image: imageDataUrl };
+
+            const result = addProduct(productToAdd);
+
+            if (result.success) {
+                toast({ title: "Product Added", description: `Product ${productToAdd.name} has been created.` });
+                setAddProductDialogOpen(false);
+                setNewProduct(initialNewProductState);
+                setNewProductImageFile(null);
+            } else {
+                 toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        };
+        reader.onerror = () => {
+            toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
+        };
     }
 
     const handleAddUser = () => {
@@ -960,6 +989,10 @@ export default function DashboardPage() {
                 <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="new-prod-id" className="text-right">Product ID</Label>
+                        <Input id="new-prod-id" value={newProduct.id} onChange={(e) => setNewProduct({...newProduct, id: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="new-prod-name" className="text-right">Name</Label>
                         <Input id="new-prod-name" value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="col-span-3" />
                     </div>
@@ -968,8 +1001,14 @@ export default function DashboardPage() {
                         <Textarea id="new-prod-desc" value={newProduct.description} onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-prod-image" className="text-right">Image URL</Label>
-                        <Input id="new-prod-image" value={newProduct.image} onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} className="col-span-3" />
+                        <Label htmlFor="new-prod-image" className="text-right">Image</Label>
+                        <div className="col-span-3">
+                            <Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} className="hidden" />
+                            <Label htmlFor="new-prod-image" className={cn(buttonVariants({ variant: "outline" }), "cursor-pointer w-full flex items-center gap-2")}>
+                                <Upload className="w-4 h-4" />
+                                <span>{newProductImageFile ? newProductImageFile.name : 'Upload Image'}</span>
+                            </Label>
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="new-prod-price" className="text-right">Price</Label>
