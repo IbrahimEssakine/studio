@@ -38,7 +38,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setProduct(foundProduct);
       setSelectedColor(foundProduct.colors[0]);
     }
-  }, [params.id, getProductById]);
+  }, [getProductById, params.id]);
 
   if (!product) {
     return <div>Loading...</div>;
