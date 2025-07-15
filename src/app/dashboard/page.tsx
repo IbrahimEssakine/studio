@@ -2,7 +2,7 @@
 
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -113,7 +113,7 @@ export default function DashboardPage() {
         const type = activeTab as ActiveItem['type'];
         let initialData;
         switch(type) {
-            case 'order': initialData = { customerName: '', status: 'Pending', total: 0, shippingAddress: { email: '', name: '', phone: '', address: '' }}; break;
+            case 'order': initialData = { customerName: '', status: 'Pending', total: 0, shippingAddress: { email: '', name: '', phone: '', address: '' }, details: [] }; break;
             case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '' }; break;
             case 'product': 
                 initialData = { id: '', name: '', price: 0, category: 'Eyeglasses', image: '', colors: [], rating: 0, reviews: 0, description: '' };
@@ -207,6 +207,13 @@ export default function DashboardPage() {
         }
     };
 
+     const handleShippingAddressChange = (field: string, value: string) => {
+        if (activeItem && activeItem.data.shippingAddress) {
+            const newAddress = { ...activeItem.data.shippingAddress, [field]: value };
+            handleActiveItemDataChange('shippingAddress', newAddress);
+        }
+    };
+
     const handleAddColor = () => {
         if (activeItem && activeItem.type === 'product' && newColorInput.trim() && !activeItem.data.colors.includes(newColorInput.trim())) {
             const newColors = [...activeItem.data.colors, newColorInput.trim()];
@@ -234,6 +241,122 @@ export default function DashboardPage() {
                     <CardContent><p className="text-muted-foreground mb-6">This area is restricted to administrators only.</p><Button asChild size="lg"><Link href="/">Go to Homepage</Link></Button></CardContent>
                 </Card>
             </div>
+        )
+    }
+
+    const renderDialogContent = () => {
+        if (!activeItem) return null;
+
+        if (activeItem.type === 'order') {
+            return (
+                <>
+                <DialogHeader>
+                    <DialogTitle>{activeItem.mode === 'edit' ? 'Edit Order' : 'Add New Order'} - {activeItem.data.id || 'New'}</DialogTitle>
+                    <DialogDescription>
+                        {activeItem.mode === 'edit' ? 'Edit the details of this order.' : 'Create a new order.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 overflow-y-auto pr-2 grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <LabelledInput label="Order Date" value={activeItem.data.orderDate} onChange={(e) => handleActiveItemDataChange('orderDate', e.target.value)} />
+                            <LabelledInput label="Total" type="number" value={activeItem.data.total} onChange={(e) => handleActiveItemDataChange('total', parseFloat(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Shipping Details</CardTitle></CardHeader>
+                            <CardContent className="space-y-3">
+                                <LabelledInput label="Contact Name" value={activeItem.data.shippingAddress?.name} onChange={e => handleShippingAddressChange('name', e.target.value)} />
+                                <LabelledInput label="Email" value={activeItem.data.shippingAddress?.email} onChange={e => handleShippingAddressChange('email', e.target.value)} />
+                                <LabelledInput label="Address" value={activeItem.data.shippingAddress?.address} onChange={e => handleShippingAddressChange('address', e.target.value)} />
+                                <div className="grid grid-cols-2 gap-4">
+                                <LabelledInput label="City" value={activeItem.data.shippingAddress?.city} onChange={e => handleShippingAddressChange('city', e.target.value)} />
+                                <LabelledInput label="ZIP" value={activeItem.data.shippingAddress?.zip} onChange={e => handleShippingAddressChange('zip', e.target.value)} />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="space-y-4">
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Order Items ({activeItem.data.items || 0})</CardTitle></CardHeader>
+                            <CardContent className="space-y-3">
+                                {activeItem.data.details?.length > 0 ? activeItem.data.details.map((item: any) => (
+                                    <div key={item.id} className="flex items-center gap-3">
+                                        <Image src={item.image} alt={item.name} width={48} height={48} className="rounded-md" />
+                                        <div className="flex-grow">
+                                            <p className="font-semibold">{item.name}</p>
+                                            <p className="text-xs text-muted-foreground">{item.color}, {item.lensType}</p>
+                                        </div>
+                                        <p className="text-sm">{item.price.toFixed(2)} DH</p>
+                                    </div>
+                                )) : <p className="text-sm text-muted-foreground">No items in this order.</p>}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                </>
+            );
+        }
+
+        return (
+            <>
+            <DialogHeader>
+                <DialogTitle>{activeItem.mode === 'add' ? 'Add New' : 'Edit'} {activeItem.type.charAt(0).toUpperCase() + activeItem.type.slice(1)}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 overflow-y-auto pr-2">
+                {activeItem.type === 'appointment' && (
+                     <div className="space-y-4">
+                        <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                        <LabelledInput label="Email" type="email" value={activeItem.data.email} onChange={(e) => handleActiveItemDataChange('email', e.target.value)} />
+                        <div className="space-y-2"><Label>Date</Label>
+                            <Popover>
+                                <PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !activeItem.data.date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{activeItem.data.date ? format(activeItem.data.date, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={activeItem.data.date} onSelect={(d) => d && handleActiveItemDataChange('date', d)} initialFocus /></PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="space-y-2"><Label>Time</Label><Select value={activeItem.data.time} onValueChange={(v) => handleActiveItemDataChange('time', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{availableTimes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
+                        <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(v) => handleActiveItemDataChange('status', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{appointmentStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+                    </div>
+                )}
+                {activeItem.type === 'product' && (
+                     <div className="space-y-4">
+                        {activeItem.mode === 'add' && <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} />}
+                        <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                        <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
+                         {activeItem.mode === 'add' && <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>}
+                        <div className="grid grid-cols-2 gap-4">
+                            <LabelledInput label="Price" type="number" value={activeItem.data.price} onChange={(e) => handleActiveItemDataChange('price', parseFloat(e.target.value) || 0)} />
+                            <div className="space-y-2"><Label>Category</Label><Select value={activeItem.data.category} onValueChange={(v) => handleActiveItemDataChange('category', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Colors</Label>
+                            <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
+                                {activeItem.data.colors.map((color: string, index: number) => (
+                                    <Badge key={index} variant="secondary" className="flex items-center gap-1">{color}<button type="button" onClick={() => handleRemoveColor(color)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Input placeholder="Add a color name" value={newColorInput} onChange={(e) => setNewColorInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddColor())} />
+                                <Button type="button" variant="outline" onClick={handleAddColor}>Add</Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {activeItem.type === 'user' && (
+                     <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <LabelledInput label="First Name" value={activeItem.data.firstName} onChange={(e) => handleActiveItemDataChange('firstName', e.target.value)} />
+                            <LabelledInput label="Last Name" value={activeItem.data.lastName} onChange={(e) => handleActiveItemDataChange('lastName', e.target.value)} />
+                        </div>
+                        <LabelledInput label="Email" type="email" value={activeItem.data.email} onChange={(e) => handleActiveItemDataChange('email', e.target.value)} disabled={activeItem.mode === 'edit'} />
+                        {activeItem.mode === 'add' && <LabelledInput label="Password" type="password" value={activeItem.data.password} onChange={(e) => handleActiveItemDataChange('password', e.target.value)} />}
+                        <div className="space-y-2"><Label>Role</Label><Select value={activeItem.data.role} onValueChange={(v) => handleActiveItemDataChange('role', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{userRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></div>
+                    </div>
+                )}
+            </div>
+            </>
         )
     }
 
@@ -288,83 +411,12 @@ export default function DashboardPage() {
 
         {/* Unified Dialog for Add/Edit/View */}
         <Dialog open={!!activeItem} onOpenChange={(isOpen) => !isOpen && setActiveItem(null)}>
-            <DialogContent className="sm:max-w-3xl max-h-[90vh]">
-                 {activeItem && (
-                    <>
-                    <DialogHeader>
-                        <DialogTitle>{activeItem.mode === 'add' ? 'Add New' : 'Edit'} {activeItem.type.charAt(0).toUpperCase() + activeItem.type.slice(1)}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4 overflow-y-auto pr-2">
-                        {activeItem.type === 'order' && (
-                            <div className="space-y-4">
-                                <LabelledInput label="Customer Name" value={activeItem.data.customerName} onChange={(e) => handleActiveItemDataChange('customerName', e.target.value)} />
-                                <div className="space-y-2">
-                                    <Label>Status</Label>
-                                    <Select value={activeItem.data.status} onValueChange={(value) => handleActiveItemDataChange('status', value)}>
-                                        <SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>{orderStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                </div>
-                                <LabelledInput label="Total" type="number" value={activeItem.data.total} onChange={(e) => handleActiveItemDataChange('total', parseFloat(e.target.value) || 0)} />
-                                <Card><CardHeader><CardTitle>Shipping Address</CardTitle></CardHeader><CardContent className="space-y-2"><p>{activeItem.data.shippingAddress?.name}</p><p>{activeItem.data.shippingAddress?.address}</p></CardContent></Card>
-                            </div>
-                        )}
-                        {activeItem.type === 'appointment' && (
-                             <div className="space-y-4">
-                                <LabelledInput label="Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
-                                <LabelledInput label="Email" type="email" value={activeItem.data.email} onChange={(e) => handleActiveItemDataChange('email', e.target.value)} />
-                                <div className="space-y-2"><Label>Date</Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !activeItem.data.date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{activeItem.data.date ? format(activeItem.data.date, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={activeItem.data.date} onSelect={(d) => d && handleActiveItemDataChange('date', d)} initialFocus /></PopoverContent>
-                                    </Popover>
-                                </div>
-                                <div className="space-y-2"><Label>Time</Label><Select value={activeItem.data.time} onValueChange={(v) => handleActiveItemDataChange('time', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{availableTimes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-                                <div className="space-y-2"><Label>Status</Label><Select value={activeItem.data.status} onValueChange={(v) => handleActiveItemDataChange('status', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{appointmentStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
-                            </div>
-                        )}
-                        {activeItem.type === 'product' && (
-                             <div className="space-y-4">
-                                {activeItem.mode === 'add' && <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} />}
-                                <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
-                                <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
-                                 {activeItem.mode === 'add' && <div className="space-y-2"><Label>Image</Label><Input id="new-prod-image" type="file" accept="image/*" onChange={(e) => setNewProductImageFile(e.target.files ? e.target.files[0] : null)} /></div>}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <LabelledInput label="Price" type="number" value={activeItem.data.price} onChange={(e) => handleActiveItemDataChange('price', parseFloat(e.target.value) || 0)} />
-                                    <div className="space-y-2"><Label>Category</Label><Select value={activeItem.data.category} onValueChange={(v) => handleActiveItemDataChange('category', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{productCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Colors</Label>
-                                    <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
-                                        {activeItem.data.colors.map((color: string, index: number) => (
-                                            <Badge key={index} variant="secondary" className="flex items-center gap-1">{color}<button type="button" onClick={() => handleRemoveColor(color)} className="rounded-full hover:bg-muted-foreground/20 p-0.5"><XIcon className="h-3 w-3" /></button></Badge>
-                                        ))}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Input placeholder="Add a color name" value={newColorInput} onChange={(e) => setNewColorInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddColor())} />
-                                        <Button type="button" variant="outline" onClick={handleAddColor}>Add</Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {activeItem.type === 'user' && (
-                             <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <LabelledInput label="First Name" value={activeItem.data.firstName} onChange={(e) => handleActiveItemDataChange('firstName', e.target.value)} />
-                                    <LabelledInput label="Last Name" value={activeItem.data.lastName} onChange={(e) => handleActiveItemDataChange('lastName', e.target.value)} />
-                                </div>
-                                <LabelledInput label="Email" type="email" value={activeItem.data.email} onChange={(e) => handleActiveItemDataChange('email', e.target.value)} disabled={activeItem.mode === 'edit'} />
-                                {activeItem.mode === 'add' && <LabelledInput label="Password" type="password" value={activeItem.data.password} onChange={(e) => handleActiveItemDataChange('password', e.target.value)} />}
-                                <div className="space-y-2"><Label>Role</Label><Select value={activeItem.data.role} onValueChange={(v) => handleActiveItemDataChange('role', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{userRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></div>
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={handleSave}>Save</Button>
-                    </DialogFooter>
-                    </>
-                )}
+            <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+                 {renderDialogContent()}
+                 <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleSave}>Save</Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     </div>
@@ -411,10 +463,10 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
 
     const renderCardContent = (item: any) => {
          switch (type) {
-            case 'order': return <p><strong>Total:</strong> {item.total.toFixed(2)} DH - <strong>Status:</strong> <Badge variant={getBadgeVariant(item.status)}>{item.status}</Badge></p>;
-            case 'appointment': return <p><strong>Date:</strong> {new Date(item.date).toLocaleDateString()} at {item.time}</p>;
-            case 'product': return <p><strong>Price:</strong> {item.price.toFixed(2)} DH</p>;
-            case 'user': return <p><strong>Role:</strong> <Badge variant={item.role === 'admin' ? 'destructive' : 'secondary'}>{item.role}</Badge></p>;
+            case 'order': return <div className="text-sm text-muted-foreground"><strong>Total:</strong> {item.total.toFixed(2)} DH - <strong>Status:</strong> <Badge variant={getBadgeVariant(item.status)} className="ml-1">{item.status}</Badge></div>;
+            case 'appointment': return <p className="text-sm text-muted-foreground"><strong>Date:</strong> {new Date(item.date).toLocaleDateString()} at {item.time}</p>;
+            case 'product': return <p className="text-sm text-muted-foreground"><strong>Price:</strong> {item.price.toFixed(2)} DH</p>;
+            case 'user': return <p className="text-sm text-muted-foreground"><strong>Role:</strong> <Badge variant={item.role === 'admin' ? 'destructive' : 'secondary'} className="ml-1">{item.role}</Badge></p>;
         }
     }
 
@@ -423,7 +475,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
             <div className="space-y-4">
                 {data.length > 0 ? data.map(item => (
                     <Card key={item.id}>
-                        <CardHeader>
+                        <CardHeader className="pb-2">
                             <CardTitle className="text-base flex justify-between items-start">
                                 <span>{item.name || `${item.firstName} ${item.lastName}` || item.id}</span>
                                 <ItemActions item={item} type={type} onEdit={onEdit} onDelete={onDelete} users={users} />
@@ -474,7 +526,9 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => onEdit(type, item)}>View / Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(type, item)}>
+                        <Eye className="mr-2 h-4 w-4" /> View / Edit
+                    </DropdownMenuItem>
                     {type === 'appointment' && item.status !== 'Confirmed' &&
                         <DropdownMenuItem onClick={() => onEdit(type, {...item, status: 'Confirmed'})}>Confirm</DropdownMenuItem>
                     }
@@ -490,5 +544,3 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
     );
 }
 
-
-    
