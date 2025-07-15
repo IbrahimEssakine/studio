@@ -48,7 +48,7 @@ const sendEmail = async (to: string, subject: string, html: string) => {
     }
 };
 
-export const sendNewOrderEmail = (order: Order) => {
+export const sendNewOrderEmail = async (order: Order) => {
     const to = order.shippingAddress?.email;
     if (!to) return;
 
@@ -66,10 +66,10 @@ export const sendNewOrderEmail = (order: Order) => {
         <p>Thanks,</p>
         <p>The Agharas Vision Team</p>
     `;
-    sendEmail(to, subject, body);
+    await sendEmail(to, subject, body);
 };
 
-export const sendOrderStatusUpdateEmail = (order: Order) => {
+export const sendOrderStatusUpdateEmail = async (order: Order) => {
     const to = order.shippingAddress?.email;
     if (!to) return;
 
@@ -82,10 +82,10 @@ export const sendOrderStatusUpdateEmail = (order: Order) => {
         <p>Thanks,</p>
         <p>The Agharas Vision Team</p>
     `;
-    sendEmail(to, subject, body);
+    await sendEmail(to, subject, body);
 };
 
-export const sendNewAppointmentEmail = (appointment: Appointment) => {
+export const sendNewAppointmentEmail = async (appointment: Appointment) => {
     const to = appointment.email;
     if (!to) return;
 
@@ -98,10 +98,10 @@ export const sendNewAppointmentEmail = (appointment: Appointment) => {
         <p>Thanks,</p>
         <p>The Agharas Vision Team</p>
     `;
-    sendEmail(to, subject, body);
+    await sendEmail(to, subject, body);
 };
 
-export const sendAppointmentStatusUpdateEmail = (appointment: Appointment) => {
+export const sendAppointmentStatusUpdateEmail = async (appointment: Appointment) => {
     const to = appointment.email;
     if (!to) return;
     
@@ -114,10 +114,10 @@ export const sendAppointmentStatusUpdateEmail = (appointment: Appointment) => {
         <p>Thanks,</p>
         <p>The Agharas Vision Team</p>
     `;
-    sendEmail(to, subject, body);
+    await sendEmail(to, subject, body);
 }
 
-export const sendPasswordResetEmail = (email: string) => {
+export const sendPasswordResetEmail = async (email: string) => {
     const subject = "🔑 Reset Your Agharas Vision Password";
     const body = `
         <p>Hi there,</p>
@@ -130,5 +130,5 @@ export const sendPasswordResetEmail = (email: string) => {
         <p>Thanks,</p>
         <p>The Agharas Vision Team</p>
     `;
-    sendEmail(email, subject, body);
+    await sendEmail(email, subject, body);
 };
