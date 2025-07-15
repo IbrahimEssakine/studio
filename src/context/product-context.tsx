@@ -5,7 +5,7 @@ import type { Product } from '@/lib/types';
 
 // Mock data
 const mockProducts: Product[] = [
-  { id: "1", name: "Classic Aviator", price: 1500, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Gold", "Silver"], rating: 4.5, reviews: 120, description: "The quintessential pilot's sunglasses, offering timeless style and excellent UV protection." },
+  { id: "1", name: "Classic Aviator", price: 1500, category: "Sunglasses", image: "https://m.media-amazon.com/images/I/51PPiD-rH8L._AC_SL1500_.jpg", colors: ["Gold", "Silver"], rating: 4.5, reviews: 120, description: "The quintessential pilot's sunglasses, offering timeless style and excellent UV protection." },
   { id: "2", name: "Modern Wayfarer", price: 1300, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Black", "Tortoise"], rating: 4.8, reviews: 250, description: "A modern take on a timeless classic. The Wayfarer's iconic shape is updated with a sleeker profile and lightweight materials." },
   { id: "3", name: "Retro Round", price: 1200, category: "Sunglasses", image: "https://placehold.co/600x400.png", colors: ["Bronze", "Matte Black"], rating: 4.6, reviews: 95, description: "Channel a vintage vibe with these perfectly round sunglasses, inspired by the icons of the past." },
   { id: "4", name: "Minimalist Frames", price: 1800, category: "Eyeglasses", image: "https://placehold.co/600x400.png", colors: ["Titanium", "Clear"], rating: 4.9, reviews: 180, description: "For the modern professional, these minimalist frames are lightweight, durable, and effortlessly stylish." },
