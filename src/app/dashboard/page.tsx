@@ -1,3 +1,4 @@
+
 "use client";
 
 import { MoreHorizontal, PlusCircle } from "lucide-react";
@@ -37,7 +38,7 @@ import { useAppointments } from "@/context/appointment-context";
 import { useProducts } from "@/context/product-context";
 import { useUser } from "@/context/user-context";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +49,9 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { notFound } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+
 
 const availableTimes = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -67,6 +71,26 @@ const initialNewUserState: Omit<User, 'id'> = { firstName: '', lastName: '', ema
 
 
 export default function DashboardPage() {
+    const { user } = useUser();
+    const router = useRouter();
+
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (isClient) {
+        if (!user) {
+            router.push('/login');
+            return null; // Render nothing while redirecting
+        }
+        if (user.role !== 'admin') {
+            notFound();
+        }
+    }
+
+
     const { orders, updateOrder, deleteOrder, addOrder } = useOrders();
     const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
     const { products, addProduct, updateProduct, deleteProduct } = useProducts();
@@ -228,6 +252,16 @@ export default function DashboardPage() {
         deleteUser(id);
         toast({ title: "User Deleted", description: `User ${id} has been removed.` });
     }
+
+    if (!isClient || !user) {
+        // Show a loading state or a blank screen while client state is being determined
+        return (
+            <div className="container mx-auto px-4 md:px-6 py-12">
+                <p>Loading...</p>
+            </div>
+        );
+    }
+
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
@@ -883,3 +917,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
