@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from 'next/navigation';
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,17 +20,33 @@ import {
 } from "@/components/ui/sheet";
 import { useProducts } from "@/context/product-context";
 import { Product } from "@/lib/types";
+import { useBrands } from "@/context/brand-context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const categories: Product['category'][] = ["Sunglasses", "Eyeglasses", "Contact Lens", "Clip 2 in 1"];
-const colors = ["Black", "Silver", "Gold", "Tortoise", "Bronze", "Clear", "Red"];
-const genders = ["Homme", "Femme", "Unisex"];
+const genders: Product['gender'][] = ["Homme", "Femme", "Unisex"];
 
 export default function ShopPage() {
   const { products: allProducts } = useProducts();
+  const { brands } = useBrands();
+  const searchParams = useSearchParams();
+
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedGender, setSelectedGender] = useState<string>('all');
-  const [selectedColor, setSelectedColor] = useState<string>('all');
+  const [selectedBrand, setSelectedBrand] = useState<string>('all');
+
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const gender = searchParams.get('gender');
+    
+    if (category) {
+        setSelectedCategories([category]);
+    }
+    if (gender) {
+        setSelectedGender(gender);
+    }
+  }, [searchParams]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories(prev => 
@@ -44,10 +61,10 @@ export default function ShopPage() {
       const priceMatch = product.price >= priceRange[0] && product.price <= priceRange[1];
       const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
       const genderMatch = selectedGender === 'all' || product.gender === selectedGender;
-      const colorMatch = selectedColor === 'all' || product.colors.includes(selectedColor);
-      return priceMatch && categoryMatch && genderMatch && colorMatch;
+      const brandMatch = selectedBrand === 'all' || product.brandId === selectedBrand;
+      return priceMatch && categoryMatch && genderMatch && brandMatch;
     });
-  }, [allProducts, priceRange, selectedCategories, selectedGender, selectedColor]);
+  }, [allProducts, priceRange, selectedCategories, selectedGender, selectedBrand]);
 
   const Filters = () => (
     <Card>
@@ -82,6 +99,20 @@ export default function ShopPage() {
           </RadioGroup>
         </div>
         <div>
+          <h3 className="font-semibold mb-3">Brand</h3>
+           <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+              <SelectTrigger>
+                  <SelectValue placeholder="Select a brand" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">All Brands</SelectItem>
+                  {brands.map(brand => (
+                      <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+        </div>
+        <div>
           <h3 className="font-semibold mb-3">Price Range</h3>
           <Slider
             value={priceRange}
@@ -93,21 +124,6 @@ export default function ShopPage() {
             <span>{priceRange[0]} DH</span>
             <span>{priceRange[1]} DH</span>
           </div>
-        </div>
-        <div>
-          <h3 className="font-semibold mb-3">Color</h3>
-          <RadioGroup value={selectedColor} onValueChange={setSelectedColor}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="all" id="color-all" />
-              <Label htmlFor="color-all">All</Label>
-            </div>
-            {colors.map((color) => (
-              <div key={color} className="flex items-center space-x-2">
-                <RadioGroupItem value={color} id={`color-${color.toLowerCase()}`} />
-                <Label htmlFor={`color-${color.toLowerCase()}`}>{color}</Label>
-              </div>
-            ))}
-          </RadioGroup>
         </div>
       </CardContent>
     </Card>

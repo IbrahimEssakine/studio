@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/language-context";
 import { Separator } from "@/components/ui/separator";
+import { useBrands } from "@/context/brand-context";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -30,6 +31,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string;
   const { getProductById } = useProducts();
+  const { brands } = useBrands();
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { dictionary } = useLanguage();
@@ -89,6 +91,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return <div>{productPage.loading}</div>;
   }
+  
+  const brandName = brands.find(b => b.id === product.brandId)?.name;
 
   const showPrescriptionMethods = selectedGlassesType === 'with-correction';
   const showLensOptions = showPrescriptionMethods && (selectedPrescriptionMethod === 'manual' || selectedPrescriptionMethod === 'upload');
@@ -160,7 +164,7 @@ export default function ProductDetailPage() {
             <div className="flex justify-between items-start">
               <span className="text-sm font-medium text-primary">{product.category}</span>
             </div>
-            <h2 className="text-sm uppercase tracking-wider text-muted-foreground mt-2">{product.marque}</h2>
+            {brandName && <h2 className="text-sm uppercase tracking-wider text-muted-foreground mt-2">{brandName}</h2>}
             <h1 className="text-4xl md:text-5xl font-headline font-bold mt-1">{product.name}</h1>
             <div className="flex items-center gap-2 mt-3">
               <div className="flex items-center">
@@ -318,5 +322,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-    

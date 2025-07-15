@@ -2,7 +2,7 @@
 export interface Product {
   id: string;
   name: string;
-  marque?: string;
+  brandId: string;
   price: number;
   category: "Sunglasses" | "Eyeglasses" | "Contact Lens" | "Clip 2 in 1";
   gender: "Homme" | "Femme" | "Unisex";
@@ -62,4 +62,8 @@ export interface LensTypeOption {
   price: number;
 }
 
-    
+export interface Brand {
+    id: string;
+    name: string;
+    logo?: string;
+}

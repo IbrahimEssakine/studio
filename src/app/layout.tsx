@@ -15,6 +15,7 @@ import { LanguageProvider } from "@/context/language-context";
 import React from "react";
 import { WhatsAppFAB } from "@/components/whatsapp-fab";
 import { ThemeProvider } from "@/components/theme-provider";
+import { BrandProvider } from "@/context/brand-context";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -64,17 +65,19 @@ export default function RootLayout({
             <UserProvider>
                 <OrderProvider>
                   <AppointmentProvider>
-                    <ProductProvider>
-                      <CartProvider>
-                        <div className="relative flex min-h-dvh flex-col bg-background">
-                          <Header />
-                          <main className="flex-1">{children}</main>
-                          <Footer />
-                          <WhatsAppFAB />
-                        </div>
-                        <Toaster />
-                      </CartProvider>
-                    </ProductProvider>
+                    <BrandProvider>
+                        <ProductProvider>
+                        <CartProvider>
+                            <div className="relative flex min-h-dvh flex-col bg-background">
+                            <Header />
+                            <main className="flex-1">{children}</main>
+                            <Footer />
+                            <WhatsAppFAB />
+                            </div>
+                            <Toaster />
+                        </CartProvider>
+                        </ProductProvider>
+                    </BrandProvider>
                   </AppointmentProvider>
                 </OrderProvider>
             </UserProvider>

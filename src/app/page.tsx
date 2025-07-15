@@ -12,9 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
+import { useBrands } from "@/context/brand-context";
 
 export default function Home() {
   const { products } = useProducts();
+  const { brands } = useBrands();
   const { dictionary } = useLanguage();
   const featuredProducts = products.slice(0, 4);
   
@@ -24,8 +26,6 @@ export default function Home() {
   const lunettesFemmeCount = products.filter(p => p.category === 'Eyeglasses' && (p.gender === 'Femme' || p.gender === 'Unisex')).length;
   const lunettesHommeCount = products.filter(p => p.category === 'Eyeglasses' && (p.gender === 'Homme' || p.gender === 'Unisex')).length;
   
-  const brands = [...new Set(products.map(p => p.marque).filter(Boolean))];
-
   const testimonials = [
     {
       name: "Fatima Zahra",
@@ -45,11 +45,11 @@ export default function Home() {
   ];
 
   const collections = [
-      { icon: <Contact className="h-8 w-8 text-white" />, title: "Lentilles de Contact", count: contactLensesCount },
-      { icon: <Glasses className="h-8 w-8 text-white" />, title: "Solaires Homme", count: sunglassesHommeCount },
-      { icon: <Briefcase className="h-8 w-8 text-white" />, title: "Clip 2 en 1", count: clip2in1Count },
-      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Femme", count: lunettesFemmeCount },
-      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Homme", count: lunettesHommeCount },
+      { icon: <Contact className="h-8 w-8 text-white" />, title: "Lentilles de Contact", count: contactLensesCount, link: "/shop?category=Contact+Lens" },
+      { icon: <Glasses className="h-8 w-8 text-white" />, title: "Solaires Homme", count: sunglassesHommeCount, link: "/shop?category=Sunglasses&gender=Homme" },
+      { icon: <Briefcase className="h-8 w-8 text-white" />, title: "Clip 2 en 1", count: clip2in1Count, link: "/shop?category=Clip+2+in+1" },
+      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Femme", count: lunettesFemmeCount, link: "/shop?category=Eyeglasses&gender=Femme" },
+      { icon: <PersonStanding className="h-8 w-8 text-white" />, title: "Lunettes Homme", count: lunettesHommeCount, link: "/shop?category=Eyeglasses&gender=Homme" },
   ];
 
   return (
@@ -108,17 +108,17 @@ export default function Home() {
           </h2>
            <div className="mt-12 grid grid-cols-5 gap-4 md:gap-6">
                 {collections.map((collection, index) => (
-                    <div key={index} className="flex flex-col">
-                        <Card className="hover:shadow-lg transition-shadow group relative overflow-hidden h-64 flex flex-col justify-end w-full">
-                            <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/60 via-black/40 to-transparent flex flex-col justify-end h-full">
-                                <div className="text-white">
+                    <Link key={index} href={collection.link}>
+                        <Card className="hover:shadow-lg transition-shadow group relative overflow-hidden h-80 flex flex-col justify-end w-full cursor-pointer">
+                            <CardContent className="p-4 relative z-10 bg-gradient-to-t from-black/70 via-black/50 to-transparent flex flex-col justify-end h-full text-white">
+                                <div className="space-y-2">
                                     {collection.icon}
-                                    <p className="font-semibold text-lg mt-2">{collection.title}</p>
+                                    <p className="font-semibold text-lg">{collection.title}</p>
                                     <p className="text-sm">({collection.count} articles)</p>
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>
@@ -141,7 +141,11 @@ export default function Home() {
                     <div className="p-1">
                       <Card>
                         <CardContent className="flex aspect-square items-center justify-center p-6">
-                          <span className="text-xl font-semibold text-muted-foreground">{brand}</span>
+                           {brand.logo ? (
+                                <Image src={brand.logo} alt={brand.name} width={100} height={50} objectFit="contain" />
+                            ) : (
+                                <span className="text-xl font-semibold text-muted-foreground">{brand.name}</span>
+                            )}
                         </CardContent>
                       </Card>
                     </div>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye, Search, ChevronsUpDown, Truck, Undo2 } from "lucide-react";
+import { MoreHorizontal, PlusCircle, ShieldAlert, Star, Upload, XIcon, Eye, Search, ChevronsUpDown, Truck, Undo2, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,11 +32,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Order, Appointment, Product, User, CartItem } from "@/lib/types";
+import type { Order, Appointment, Product, User, CartItem, Brand } from "@/lib/types";
 import { useOrders } from "@/context/order-context";
 import { useAppointments } from "@/context/appointment-context";
 import { useProducts } from "@/context/product-context";
 import { useUser } from "@/context/user-context";
+import { useBrands } from "@/context/brand-context";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
@@ -54,7 +55,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
 
 const availableTimes = [
   "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -69,7 +69,7 @@ const productGenders: Product['gender'][] = ["Homme", "Femme", "Unisex"];
 const userRoles: User['role'][] = ["customer", "admin"];
 
 type ActiveItem = {
-    type: 'order' | 'appointment' | 'product' | 'user';
+    type: 'order' | 'appointment' | 'product' | 'user' | 'brand';
     mode: 'add' | 'edit';
     data: any;
 } | null;
@@ -84,10 +84,12 @@ export default function DashboardPage() {
     const { appointments, addAppointment, updateAppointment, deleteAppointment } = useAppointments();
     const { products, addProduct, updateProduct, deleteProduct } = useProducts();
     const { users, addUser, updateUser, deleteUser } = useUser();
+    const { brands, addBrand, updateBrand, deleteBrand } = useBrands();
     
     const [activeTab, setActiveTab] = useState("orders");
     const [activeItem, setActiveItem] = useState<ActiveItem>(null);
     const [newProductImageFile, setNewProductImageFile] = useState<File | null>(null);
+    const [newBrandLogoFile, setNewBrandLogoFile] = useState<File | null>(null);
     const [newColorInput, setNewColorInput] = useState("");
     const [newTagInput, setNewTagInput] = useState("");
     const [newOrderItems, setNewOrderItems] = useState<CartItem[]>([]);
@@ -108,8 +110,9 @@ export default function DashboardPage() {
             dataToEdit.details = [];
         }
         setActiveItem({ type, mode: 'edit', data: dataToEdit });
-        if (type === 'product') {
+        if (type === 'product' || type === 'brand') {
             setNewProductImageFile(null);
+            setNewBrandLogoFile(null);
             setNewColorInput("");
             setNewTagInput("");
         }
@@ -128,12 +131,16 @@ export default function DashboardPage() {
                 break;
             case 'appointment': initialData = { name: '', email: '', phone: '', date: new Date(), time: '', status: 'Pending' }; break;
             case 'product': 
-                initialData = { id: '', name: '', marque: '', price: 0, category: 'Eyeglasses', gender: 'Unisex', image: '', colors: [], tags: [], rating: 0, reviews: 0, description: '', ribbon: '' };
+                initialData = { id: '', name: '', brandId: '', price: 0, category: 'Eyeglasses', gender: 'Unisex', image: '', colors: [], tags: [], rating: 0, reviews: 0, description: '', ribbon: '' };
                 setNewProductImageFile(null);
                 setNewColorInput("");
                 setNewTagInput("");
                 break;
             case 'user': initialData = { firstName: '', lastName: '', email: '', password: '', phone: '', address: '', city: '', zip: '', gender: '', role: 'customer' }; break;
+            case 'brand': 
+                initialData = { id: '', name: '', logo: '' };
+                setNewBrandLogoFile(null);
+                break;
             default: return;
         }
         setActiveItem({ type, mode: 'add', data: initialData });
@@ -166,6 +173,25 @@ export default function DashboardPage() {
                     };
                     reader.onerror = () => toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
                     return;
+                } else if (type === 'brand') {
+                    if (!data.id.trim() || !data.name.trim()) {
+                        toast({ title: "Error", description: "Brand ID and Name are required.", variant: "destructive" });
+                        return;
+                    }
+                    if (newBrandLogoFile) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(newBrandLogoFile);
+                        reader.onloadend = () => {
+                            const logoDataUrl = reader.result as string;
+                            const brandToAdd: Brand = { ...data, logo: logoDataUrl };
+                            addBrand(brandToAdd);
+                            toast({ title: "Brand Added", description: `Brand ${brandToAdd.name} has been created.` });
+                        };
+                        reader.onerror = () => toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
+                    } else {
+                         addBrand(data);
+                         toast({ title: "Brand Added", description: `Brand ${data.name} has been created.` });
+                    }
                 } else if (type === 'user') {
                     const result = addUser(data);
                     if (result.success) toast({ title: "User Added", description: `User ${data.firstName} has been created.` });
@@ -207,6 +233,21 @@ export default function DashboardPage() {
                 } else if (type === 'user') {
                     updateUser(data.id, data);
                     toast({ title: "User Updated", description: `User ${data.firstName} has been updated.` });
+                } else if (type === 'brand') {
+                    if (newBrandLogoFile) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(newBrandLogoFile);
+                        reader.onloadend = () => {
+                            const logoDataUrl = reader.result as string;
+                            const brandToUpdate = { ...data, logo: logoDataUrl };
+                            updateBrand(data.id, brandToUpdate);
+                            toast({ title: "Brand Updated", description: `Brand ${data.name} has been updated.` });
+                        };
+                         reader.onerror = () => toast({ title: "Error", description: "Failed to read image file.", variant: "destructive" });
+                    } else {
+                        updateBrand(data.id, data);
+                        toast({ title: "Brand Updated", description: `Brand ${data.name} has been updated.` });
+                    }
                 }
             }
             setActiveItem(null);
@@ -228,6 +269,9 @@ export default function DashboardPage() {
         } else if (type === 'user') {
             deleteUser(id);
             toast({ title: "User Deleted", description: `User ${id} has been removed.` });
+        } else if (type === 'brand') {
+            deleteBrand(id);
+            toast({ title: "Brand Deleted", description: `Brand ${id} has been removed.` });
         }
     };
     
@@ -420,7 +464,7 @@ export default function DashboardPage() {
                         <LabelledInput label="Product ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} disabled={activeItem.mode === 'edit'} />
                         <div className="grid grid-cols-2 gap-4">
                             <LabelledInput label="Product Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
-                            <LabelledInput label="Brand" value={activeItem.data.marque} onChange={(e) => handleActiveItemDataChange('marque', e.target.value)} />
+                             <div className="space-y-2"><Label>Brand</Label><Select value={activeItem.data.brandId} onValueChange={(v) => handleActiveItemDataChange('brandId', v)}><SelectTrigger><SelectValue placeholder="Select brand..." /></SelectTrigger><SelectContent>{brands.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent></Select></div>
                         </div>
                         <LabelledInput label="Ribbon Text (e.g. Best Seller)" value={activeItem.data.ribbon} onChange={(e) => handleActiveItemDataChange('ribbon', e.target.value)} />
                         <div className="space-y-2"><Label>Description</Label><Textarea value={activeItem.data.description} onChange={(e) => handleActiveItemDataChange('description', e.target.value)} /></div>
@@ -473,6 +517,14 @@ export default function DashboardPage() {
                         <div className="space-y-2"><Label>Role</Label><Select value={activeItem.data.role} onValueChange={(v) => handleActiveItemDataChange('role', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{userRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></div>
                     </div>
                 )}
+                {activeItem.type === 'brand' && (
+                     <div className="space-y-4">
+                        <LabelledInput label="Brand ID" value={activeItem.data.id} onChange={(e) => handleActiveItemDataChange('id', e.target.value)} disabled={activeItem.mode === 'edit'} />
+                        <LabelledInput label="Brand Name" value={activeItem.data.name} onChange={(e) => handleActiveItemDataChange('name', e.target.value)} />
+                        <div className="space-y-2"><Label>Logo</Label><Input id="new-brand-logo" type="file" accept="image/*" onChange={(e) => setNewBrandLogoFile(e.target.files ? e.target.files[0] : null)} /></div>
+                        {activeItem.data.logo && <Image src={activeItem.data.logo} alt="Brand Logo" width={100} height={50} className="object-contain border p-2 rounded-md" />}
+                    </div>
+                )}
             </div>
             </>
         )
@@ -487,10 +539,11 @@ export default function DashboardPage() {
 
         <Tabs defaultValue="orders" onValueChange={setActiveTab}>
             <div className="flex items-center">
-                <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full sm:w-auto">
+                <TabsList className="grid grid-cols-2 sm:grid-cols-5 w-full sm:w-auto">
                     <TabsTrigger value="orders">Orders ({orders.length})</TabsTrigger>
                     <TabsTrigger value="appointments">Appointments ({appointments.length})</TabsTrigger>
                     <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
+                    <TabsTrigger value="brands">Brands ({brands.length})</TabsTrigger>
                     <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
                 </TabsList>
                 <div className="ml-auto flex items-center gap-2">
@@ -517,6 +570,12 @@ export default function DashboardPage() {
                 <Card>
                     <CardHeader><CardTitle>Products</CardTitle><CardDescription>Manage your store's products.</CardDescription></CardHeader>
                     <CardContent><TableComponent type="product" data={products} onEdit={handleEditClick} onDelete={handleDelete} /></CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="brands">
+                <Card>
+                    <CardHeader><CardTitle>Brands</CardTitle><CardDescription>Manage product brands and logos.</CardDescription></CardHeader>
+                    <CardContent><TableComponent type="brand" data={brands} onEdit={handleEditClick} onDelete={handleDelete} /></CardContent>
                 </Card>
             </TabsContent>
             <TabsContent value="users">
@@ -593,9 +652,9 @@ const getBadgeVariant = (status: Order['status'] | Appointment['status']) => {
     }
 };
 
-const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'appointment' | 'product' | 'user', data: any[], onEdit: (type: any, item: any) => void, onDelete: (type: any, id: string) => void }) => {
-    const isMobile = useMemo(() => typeof window !== "undefined" && window.innerWidth < 768, []);
+const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'appointment' | 'product' | 'user' | 'brand', data: any[], onEdit: (type: any, item: any) => void, onDelete: (type: any, id: string) => void }) => {
     const { users } = useUser();
+    const { brands } = useBrands();
     const [alertDialogState, setAlertDialogState] = useState<{ open: boolean, type?: string, id?: string }>({ open: false });
 
     const handleDeleteClick = (type: string, id: string) => {
@@ -615,6 +674,7 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
             case 'appointment': return ['Name', 'Date & Time', 'Status', 'Contact'];
             case 'product': return ['Product ID', 'Name', 'Brand', 'Price'];
             case 'user': return ['User ID', 'Name', 'Email', 'Role'];
+            case 'brand': return ['Brand ID', 'Logo', 'Name'];
         }
     };
     
@@ -622,42 +682,13 @@ const TableComponent = ({ type, data, onEdit, onDelete }: { type: 'order' | 'app
         switch (type) {
             case 'order': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.customerName}</TableCell>, <TableCell key="status"><Badge variant={getBadgeVariant(item.status)}>{item.status}</Badge></TableCell>, <TableCell key="total" className="text-right">{item.total.toFixed(2)} DH</TableCell>];
             case 'appointment': return [<TableCell key="name" className="font-medium">{item.name}</TableCell>, <TableCell key="date">{new Date(item.date).toLocaleDateString()} at {item.time}</TableCell>, <TableCell key="status"><Badge variant={getBadgeVariant(item.status)}>{item.status}</Badge></TableCell>, <TableCell key="email">{item.email}</TableCell>];
-            case 'product': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.name}</TableCell>, <TableCell key="marque">{item.marque}</TableCell>, <TableCell key="price" className="text-right">{item.price.toFixed(2)} DH</TableCell>];
+            case 'product':
+                const brandName = brands.find(b => b.id === item.brandId)?.name || 'N/A';
+                return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.name}</TableCell>, <TableCell key="brand">{brandName}</TableCell>, <TableCell key="price" className="text-right">{item.price.toFixed(2)} DH</TableCell>];
             case 'user': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="name">{item.firstName} {item.lastName}</TableCell>, <TableCell key="email">{item.email}</TableCell>, <TableCell key="role"><Badge variant={item.role === 'admin' ? 'destructive' : 'secondary'}>{item.role}</Badge></TableCell>];
+            case 'brand': return [<TableCell key="id" className="font-medium">{item.id}</TableCell>, <TableCell key="logo">{item.logo ? <Image src={item.logo} alt={item.name} width={60} height={30} className="object-contain" /> : 'No Logo'}</TableCell>, <TableCell key="name">{item.name}</TableCell>];
         }
     };
-
-    const renderCardContent = (item: any) => {
-         switch (type) {
-            case 'order': return <div className="text-sm text-muted-foreground"><strong>Total:</strong> {item.total.toFixed(2)} DH - <strong>Status:</strong> <Badge variant={getBadgeVariant(item.status)} className="ml-1">{item.status}</Badge></div>;
-            case 'appointment': return <p className="text-sm text-muted-foreground"><strong>Date:</strong> {new Date(item.date).toLocaleDateString()} at {item.time}</p>;
-            case 'product': return <p className="text-sm text-muted-foreground"><strong>Price:</strong> {item.price.toFixed(2)} DH</p>;
-            case 'user': return <p className="text-sm text-muted-foreground"><strong>Role:</strong> <Badge variant={item.role === 'admin' ? 'destructive' : 'secondary'} className="ml-1">{item.role}</Badge></p>;
-        }
-    }
-
-    if (isMobile) {
-        return (
-            <div className="space-y-4">
-                {data.length > 0 ? data.map(item => (
-                    <Card key={item.id}>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex justify-between items-start">
-                                <span>{item.name || `${item.firstName} ${item.lastName}` || item.id}</span>
-                                <ItemActions item={item} type={type} onEdit={onEdit} onDelete={handleDeleteClick} users={users} />
-                            </CardTitle>
-                            <CardDescription>{item.customerName || item.email || item.category}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="text-sm space-y-2">
-                           {renderCardContent(item)}
-                        </CardContent>
-                    </Card>
-                )) : (
-                    <p className="text-center text-muted-foreground py-12">No {type}s found.</p>
-                )}
-            </div>
-        )
-    }
 
     return (
         <>
@@ -713,5 +744,3 @@ const ItemActions = ({ item, type, onEdit, onDelete, users }: { item: any, type:
         </DropdownMenu>
     );
 }
-
-    

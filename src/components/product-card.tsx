@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { Star, StarHalf } from "lucide-react";
+import { useBrands } from "@/context/brand-context";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,9 @@ const renderStars = (rating: number) => {
 };
 
 export function ProductCard({ product, className, ...props }: ProductCardProps) {
+  const { brands } = useBrands();
+  const brandName = brands.find(b => b.id === product.brandId)?.name;
+
   return (
     <Card className={cn("overflow-hidden group relative", className)} {...props}>
       {product.ribbon && (
@@ -49,14 +53,17 @@ export function ProductCard({ product, className, ...props }: ProductCardProps) 
           </div>
         </Link>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-1">
         <div className="flex justify-between items-start">
-            <h3 className="font-semibold text-lg leading-tight">
-              <Link href={`/products/${product.id}`}>{product.name}</Link>
-            </h3>
+            <div className="flex-grow">
+                {brandName && <p className="text-sm text-muted-foreground uppercase tracking-wider">{brandName}</p>}
+                <h3 className="font-semibold text-lg leading-tight">
+                    <Link href={`/products/${product.id}`}>{product.name}</Link>
+                </h3>
+            </div>
             <p className="font-bold text-lg text-primary">{product.price} DH</p>
         </div>
-        <div className="flex items-center mt-2 gap-2">
+        <div className="flex items-center gap-2">
           {renderStars(product.rating)}
           <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
         </div>
@@ -74,5 +81,3 @@ export function ProductCard({ product, className, ...props }: ProductCardProps) 
     </Card>
   );
 }
-
-    
