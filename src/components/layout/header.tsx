@@ -108,7 +108,7 @@ export function Header() {
                 {link.label}
               </NavLink>
             ))}
-             {user?.role === 'admin' && (
+             {isClient && user?.role === 'admin' && (
               <NavLink href="/dashboard">{dictionary.header.dashboard}</NavLink>
             )}
           </nav>
@@ -137,7 +137,7 @@ export function Header() {
                       {link.label}
                     </MobileNavLink>
                   ))}
-                   {user?.role === 'admin' && (
+                   {isClient && user?.role === 'admin' && (
                     <MobileNavLink href="/dashboard">{dictionary.header.dashboard}</MobileNavLink>
                   )}
                 </div>
@@ -187,7 +187,7 @@ export function Header() {
                     </DropdownMenuContent>
                  </DropdownMenu>
             ) : (
-                <Button asChild variant="ghost" size="icon">
+                isClient && <Button asChild variant="ghost" size="icon">
                     <Link href="/login">
                         <User className="h-5 w-5" />
                         <span className="sr-only">{dictionary.header.login}</span>
