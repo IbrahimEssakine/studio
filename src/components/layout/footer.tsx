@@ -13,7 +13,7 @@ export function Footer() {
               <span className="font-bold text-lg font-headline">Agharas Vision</span>
             </Link>
             <p className="text-muted-foreground text-sm">
-              Crafting clear vision with style and precision since 2024.
+              Crafting clear vision with style and precision.
             </p>
           </div>
           <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
@@ -24,7 +24,7 @@ export function Footer() {
               <ul className="mt-4 space-y-2">
                 <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Eyeglasses</Link></li>
                 <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Sunglasses</Link></li>
-                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">New Arrivals</Link></li>
+                <li><Link href="/shop" className="text-sm text-muted-foreground hover:text-primary">Contact Lenses</Link></li>
               </ul>
             </div>
             <div>
@@ -42,9 +42,9 @@ export function Footer() {
                 Contact
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                <li>123 Visionary Ave, Suite 100</li>
-                <li>Metropolis, USA 12345</li>
-                <li>(123) 456-7890</li>
+                <li>N° 3, Imm 08, Lot 4, Al Kheir, Cité Essalam, Agadir, Morocco</li>
+                <li>Phone: +212 525-270883</li>
+                <li>Whatsapp: +212 628-889950</li>
                 <li>contact@agharas.vision</li>
               </ul>
             </div>

@@ -9,12 +9,10 @@ export default function AboutPage() {
       <div className="container mx-auto px-4 md:px-6 py-16 md:py-24">
         <div className="text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline font-bold text-foreground">
-            Our Vision for Your Vision
+            Your Vision, Our Expertise
           </h1>
           <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground">
-            We are more than just an eyewear store. We are a team of passionate
-            opticians, stylists, and craftsmen dedicated to helping you see
-            the world clearly and in style.
+            We are more than just an eyewear store. We are a team of certified opticians offering thorough eye exams and personalized fittings with modern equipment, dedicated to helping you see the world clearly and in style.
           </p>
         </div>
       </div>
@@ -35,19 +33,14 @@ export default function AboutPage() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-headline font-bold text-foreground">
-              Founded on a Simple Idea
+              Founded on Quality and Care
             </h2>
             <p className="mt-4 text-muted-foreground">
               Agharas Vision was born from the belief that buying glasses should be a
-              pleasurable and inspiring experience. We were tired of the
-              uninspired designs, confusing options, and impersonal service that
-              dominated the market. We knew there had to be a better way.
+              professional and inspiring experience. We specialize in optical and sunglasses frames, corrective lenses, contact lenses, and accessories.
             </p>
             <p className="mt-4 text-muted-foreground">
-              Our journey began in a small workshop with a handful of frame
-              designs and a powerful mission: to combine exceptional eye care with
-              beautifully crafted, high-quality eyewear. Today, we've grown, but
-              our core values remain the same.
+              Our journey is defined by a commitment to professional guidance and high-quality visual solutions. We offer a wide selection of designer frames and tailor solutions to your unique lifestyle and visual needs.
             </p>
           </div>
           <div>
@@ -57,7 +50,7 @@ export default function AboutPage() {
               width={600}
               height={400}
               className="rounded-lg shadow-xl"
-              data-ai-hint="vintage workshop"
+              data-ai-hint="modern optometry"
             />
           </div>
         </div>
@@ -74,18 +67,16 @@ export default function AboutPage() {
               <p className="mt-2 text-muted-foreground">
                 To provide our customers with the highest quality eyewear and
                 unparalleled service, ensuring perfect vision and a confident
-                look.
+                look with professional guidance.
               </p>
             </div>
             <div className="flex flex-col items-center">
               <div className="p-4 bg-primary rounded-full text-primary-foreground">
                 <Eye className="h-8 w-8" />
               </div>
-              <h3 className="mt-4 text-2xl font-headline font-semibold">Our Vision</h3>
+              <h3 className="mt-4 text-2xl font-headline font-semibold">Our Services</h3>
               <p className="mt-2 text-muted-foreground">
-                To be the most trusted and inspiring eyewear brand, known for
-                our commitment to craftsmanship, innovation, and customer
-                satisfaction.
+                We offer services like glasses repair, child optometry, contact lens fittings, and provide various advanced lens options to suit your needs.
               </p>
             </div>
             <div className="flex flex-col items-center">
@@ -95,7 +86,7 @@ export default function AboutPage() {
               <h3 className="mt-4 text-2xl font-headline font-semibold">Our Values</h3>
               <p className="mt-2 text-muted-foreground">
                 Quality, Integrity, and a Passion for helping people see
-                better and feel their best. We treat every customer like family.
+                better. We are conveniently located in central Agadir for easy access.
               </p>
             </div>
           </div>
