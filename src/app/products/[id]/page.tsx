@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Upload, CheckCircle, Calendar } from "lucide-react";
+import { Star, Upload, CheckCircle, Calendar, Frame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedLens, setSelectedLens] = useState(lensTypes[0]);
   const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [prescriptionOption, setPrescriptionOption] = useState("manual");
+  const [prescriptionOption, setPrescriptionOption] = useState("none");
   
 
   useEffect(() => {
@@ -50,7 +50,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return <div>Loading...</div>;
   }
 
-  const totalPrice = product.price + selectedLens.price;
+  const totalPrice = product.price + (prescriptionOption !== 'none' ? selectedLens.price : 0);
+  const lensType = prescriptionOption !== 'none' ? selectedLens.name : 'Frames Only';
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -64,7 +65,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       ...product,
       price: totalPrice,
       color: selectedColor,
-      lensType: selectedLens.name,
+      lensType: lensType,
       quantity: 1,
       requiresAppointment: requiresAppointment,
     };
@@ -120,31 +121,42 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </RadioGroup>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="lens-type" className="font-semibold text-lg">Lens Type</Label>
-            <Select onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}>
-              <SelectTrigger id="lens-type" className="w-full">
-                <SelectValue placeholder="Select lens type" />
-              </SelectTrigger>
-              <SelectContent>
-                {lensTypes.map(lens => (
-                  <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div>
-            <h3 className="font-semibold text-lg mb-2">Your Prescription</h3>
-            <Tabs defaultValue="manual" className="w-full" onValueChange={setPrescriptionOption}>
-              <TabsList className="grid w-full grid-cols-3">
+            <h3 className="font-semibold text-lg mb-2">Prescription Options</h3>
+            <Tabs defaultValue="none" className="w-full" onValueChange={setPrescriptionOption}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="none">Frames Only</TabsTrigger>
                 <TabsTrigger value="manual">Enter Manually</TabsTrigger>
                 <TabsTrigger value="upload">Upload File</TabsTrigger>
                 <TabsTrigger value="book">Book Appointment</TabsTrigger>
               </TabsList>
+               <TabsContent value="none" className="pt-4">
+                 <Card>
+                  <CardContent className="pt-6 space-y-2 text-center">
+                    <Frame className="mx-auto h-10 w-10 text-primary" />
+                    <h4 className="font-semibold">Frames Only</h4>
+                    <p className="text-muted-foreground">
+                      You've selected to purchase the frames only, without prescription lenses.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
               <TabsContent value="manual" className="pt-4">
                 <Card>
                   <CardContent className="pt-6 space-y-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="lens-type" className="font-semibold text-md">Lens Type</Label>
+                        <Select onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}>
+                          <SelectTrigger id="lens-type" className="w-full">
+                            <SelectValue placeholder="Select lens type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {lensTypes.map(lens => (
+                              <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="od">OD (Right Eye)</Label>
@@ -162,6 +174,19 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               <TabsContent value="upload" className="pt-4">
                 <Card>
                   <CardContent className="pt-6 space-y-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="lens-type-upload" className="font-semibold text-md">Lens Type</Label>
+                        <Select onValueChange={(value) => setSelectedLens(lensTypes.find(l => l.name === value) || lensTypes[0])}>
+                          <SelectTrigger id="lens-type-upload" className="w-full">
+                            <SelectValue placeholder="Select lens type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {lensTypes.map(lens => (
+                              <SelectItem key={lens.name} value={lens.name}>{lens.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     <div className="relative">
                       <Button asChild variant="outline" className="w-full">
                         <Label htmlFor="prescription-upload" className="cursor-pointer flex items-center justify-center gap-2">

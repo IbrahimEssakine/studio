@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -5,7 +6,7 @@ import type { CartItem } from '@/lib/types';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'quantity'> & { requiresAppointment?: boolean }) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string, color: string, lensType: string) => void;
   updateQuantity: (itemId: string, color: string, lensType: string, quantity: number) => void;
   clearCart: () => void;
@@ -39,7 +40,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, isInitialLoad]);
 
-  const addToCart = (item: Omit<CartItem, 'quantity'> & { requiresAppointment?: boolean }) => {
+  const addToCart = (item: CartItem) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(
         cartItem => cartItem.id === item.id && cartItem.color === item.color && cartItem.lensType === item.lensType
@@ -67,7 +68,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setCart(prevCart =>
         prevCart.map(item =>
-          item.id === itemId && item.color === color && item.lensType === lensType
+          item.id === itemId && item.color === color && item.lensType === item.lensType
             ? { ...item, quantity }
             : item
         )

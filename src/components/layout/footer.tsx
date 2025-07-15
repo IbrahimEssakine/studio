@@ -1,6 +1,14 @@
+
 import Link from "next/link";
-import { Glasses, Twitter, Facebook, Instagram } from "lucide-react";
+import { Glasses, Facebook, Instagram } from "lucide-react";
 import { Button } from "../ui/button";
+
+const TikTokIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M21 7.333a4.01 4.01 0 0 0-4.01-4.009h-.005a4.01 4.01 0 0 0-3.99 4.009v8.662a4.01 4.01 0 1 0 4.01 4.009V12a8.03 8.03 0 0 0 4-7.333Z"/>
+        <path d="M12.995 3.324A4.01 4.01 0 0 0 9 7.333v8.662a4.01 4.01 0 1 0 4.01 4.009V3.324Z"/>
+    </svg>
+)
 
 export function Footer() {
   return (
@@ -45,7 +53,7 @@ export function Footer() {
                 <li>N° 3, Imm 08, Lot 4, Al Kheir, Cité Essalam, Agadir, Morocco</li>
                 <li>Phone: +212 525-270883</li>
                 <li>Whatsapp: +212 628-889950</li>
-                <li>contact@agharas.vision</li>
+                <li>agharas.vision@gmail.com</li>
               </ul>
             </div>
           </div>
@@ -56,13 +64,13 @@ export function Footer() {
           </p>
           <div className="flex items-center space-x-2 mt-4 sm:mt-0">
             <Button variant="ghost" size="icon" asChild>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer noopener"><Twitter className="h-5 w-5" /></a>
+              <a href="https://www.facebook.com/people/Agharas-Vision-agadir/100077751017111/" target="_blank" rel="noreferrer noopener"><Facebook className="h-5 w-5" /></a>
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <a href="https://facebook.com" target="_blank" rel="noreferrer noopener"><Facebook className="h-5 w-5" /></a>
+              <a href="https://www.instagram.com/agharas_vision_agadir/" target="_blank" rel="noreferrer noopener"><Instagram className="h-5 w-5" /></a>
             </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer noopener"><Instagram className="h-5 w-5" /></a>
+             <Button variant="ghost" size="icon" asChild>
+              <a href="https://www.tiktok.com/@agharas__vision_agadir" target="_blank" rel="noreferrer noopener"><TikTokIcon className="h-5 w-5" /></a>
             </Button>
           </div>
         </div>

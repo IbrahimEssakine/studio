@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,11 +105,18 @@ export default function CheckoutPage() {
         total,
         items: cart.reduce((acc, item) => acc + item.quantity, 0),
         details: cart,
-        shippingAddress: values,
+        shippingAddress: {
+            email: values.email,
+            name: `${values.firstName} ${values.lastName}`,
+            address: values.address,
+            city: values.city,
+            zip: values.zip,
+            phone: user?.phone || '',
+        },
     };
     addOrder(newOrder);
 
-    if (needsAppointment && 'appointmentDate' in values && 'appointmentTime' in values) {
+    if (needsAppointment && 'appointmentDate' in values && values.appointmentDate && 'appointmentTime' in values && values.appointmentTime) {
       addAppointment({
         name: `${values.firstName} ${values.lastName}`,
         email: values.email,
