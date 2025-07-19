@@ -1,92 +1,87 @@
 
-
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Order } from '@/lib/types';
-import { sendNewOrderEmail, sendOrderStatusUpdateEmail, sendAdminNewOrderNotification } from '@/services/email-service';
+// Removed email service imports as they are handled server-side now
 
-// Mock data
+// Mock data, will be replaced by DB fetch
 const mockOrders: Order[] = [
-  { id: "ORD001", customerName: "John Doe", orderDate: "2023-10-26", status: "Delivered", total: 2800, items: 2, shippingAddress: { email: 'customer@example.com', name: 'John Doe'} },
-  { id: "ORD002", customerName: "Jane Smith", orderDate: "2023-10-25", status: "Shipped", total: 1500, items: 1, shippingAddress: { email: 'jane@example.com', name: 'Jane Smith'} },
-  { id: "ORD003", customerName: "Bob Johnson", orderDate: "2023-10-24", status: "Pending", total: 4200, items: 3, shippingAddress: { email: 'bob@example.com', name: 'Bob Johnson'} },
-  { id: "ORD004", customerName: "Alice Williams", orderDate: "2023-10-22", status: "Cancelled", total: 950, items: 1, shippingAddress: { email: 'alice@example.com', name: 'Alice Williams'} },
+  { id: "ORD001", customerName: "John Doe", orderDate: new Date("2023-10-26").toISOString(), status: "Delivered", total: 2800, items: 2, shippingAddress: { email: 'customer@example.com', name: 'John Doe'} },
+  { id: "ORD002", customerName: "Jane Smith", orderDate: new Date("2023-10-25").toISOString(), status: "Shipped", total: 1500, items: 1, shippingAddress: { email: 'jane@example.com', name: 'Jane Smith'} },
+  { id: "ORD003", customerName: "Bob Johnson", orderDate: new Date("2023-10-24").toISOString(), status: "Pending", total: 4200, items: 3, shippingAddress: { email: 'bob@example.com', name: 'Bob Johnson'} },
+  { id: "ORD004", customerName: "Alice Williams", orderDate: new Date("2023-10-22").toISOString(), status: "Cancelled", total: 950, items: 1, shippingAddress: { email: 'alice@example.com', name: 'Alice Williams'} },
 ];
-
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id' | 'orderDate' | 'items'>) => void;
-  updateOrder: (orderId: string, updatedOrder: Partial<Order>) => void;
-  deleteOrder: (orderId: string) => void;
+  addOrder: (order: Omit<Order, 'id' | 'orderDate' | 'items' | 'status'>) => Promise<void>;
+  updateOrder: (orderId: string, updatedOrder: Partial<Order>) => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
+  refreshOrders: () => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchOrders = useCallback(async () => {
+    // In a real app with server actions, you'd fetch from the server.
+    // For now, we use localStorage as a stand-in for a database.
     try {
-      const storedOrders = localStorage.getItem('orders');
-      if (storedOrders) {
-        setOrders(JSON.parse(storedOrders));
-      } else {
-        setOrders(mockOrders); // Load mock data if nothing in storage
-      }
-    } catch (error) {
-      console.error("Failed to parse orders from localStorage", error);
-      setOrders(mockOrders); // Fallback to mock data
+        const stored = localStorage.getItem('orders');
+        if (stored) {
+            setOrders(JSON.parse(stored));
+        } else {
+            localStorage.setItem('orders', JSON.stringify(mockOrders));
+        }
+    } catch(e) {
+        console.error("Failed to access localStorage for orders", e);
+    } finally {
+        setLoading(false);
     }
-    setIsInitialLoad(false);
   }, []);
 
   useEffect(() => {
-    if (!isInitialLoad) {
-      try {
-        localStorage.setItem('orders', JSON.stringify(orders));
-      } catch (error) {
-        console.error("Failed to save orders to localStorage", error);
-      }
-    }
-  }, [orders, isInitialLoad]);
+    fetchOrders();
+  }, [fetchOrders]);
+  
+  const refreshOrders = () => {
+    fetchOrders();
+  }
 
-  const addOrder = (order: Omit<Order, 'id' | 'orderDate' | 'items'>) => {
+  const addOrder = async (order: Omit<Order, 'id' | 'orderDate' | 'items' | 'status'>) => {
+    // This would be a server action
     const newOrder: Order = {
         ...order,
         id: `ORD${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        orderDate: new Date().toISOString().split('T')[0],
+        orderDate: new Date().toISOString(),
         items: order.details?.reduce((acc, item) => acc + item.quantity, 0) || 0,
+        status: "Pending",
     };
-    setOrders(prevOrders => [newOrder, ...prevOrders]);
-    // Send emails
-    sendNewOrderEmail(newOrder);
-    sendAdminNewOrderNotification(newOrder);
+    const newOrders = [newOrder, ...orders];
+    setOrders(newOrders);
+    localStorage.setItem('orders', JSON.stringify(newOrders));
   };
 
-  const updateOrder = (orderId: string, updatedOrder: Partial<Order>) => {
-    const originalOrder = orders.find(o => o.id === orderId);
-
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
+  const updateOrder = async (orderId: string, updatedOrder: Partial<Order>) => {
+    const newOrders = orders.map(order =>
         order.id === orderId ? { ...order, ...updatedOrder } : order
-      )
     );
-
-    if (originalOrder && updatedOrder.status && originalOrder.status !== updatedOrder.status) {
-      const finalOrder = { ...originalOrder, ...updatedOrder };
-      sendOrderStatusUpdateEmail(finalOrder);
-    }
+    setOrders(newOrders);
+    localStorage.setItem('orders', JSON.stringify(newOrders));
   };
 
-  const deleteOrder = (orderId: string) => {
-    setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+  const deleteOrder = async (orderId: string) => {
+    const newOrders = orders.filter(order => order.id !== orderId);
+    setOrders(newOrders);
+    localStorage.setItem('orders', JSON.stringify(newOrders));
   };
 
   return (
-    <OrderContext.Provider value={{ orders, addOrder, updateOrder, deleteOrder }}>
+    <OrderContext.Provider value={{ orders, addOrder, updateOrder, deleteOrder, refreshOrders }}>
       {children}
     </OrderContext.Provider>
   );

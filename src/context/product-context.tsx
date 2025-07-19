@@ -1,10 +1,9 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Product, Review } from '@/lib/types';
 
-// Mock data
 const mockProducts: Product[] = [
   { id: "1", name: "Classic Aviator", brandId: 'ray-ban', price: 1500, category: "Sunglasses", gender: 'Homme', image: "https://m.media-amazon.com/images/I/51PPiD-rH8L._AC_SL1500_.jpg", colors: ["Gold", "Silver"], tags: ["Timeless", "Pilot"], rating: 4.5, reviews: 120, description: "The quintessential pilot's sunglasses, offering timeless style and excellent UV protection.", ribbon: 'Best Seller', reviewsList: [{ id: "r1", author: "John D.", rating: 5, comment: "Amazing glasses, they feel very premium.", date: "2024-05-20"}] },
   { id: "2", name: "Modern Wayfarer", brandId: 'gucci', price: 1300, category: "Eyeglasses", gender: 'Unisex', image: "https://placehold.co/600x400.png", colors: ["Black", "Tortoise"], tags: ["Modern", "Iconic"], rating: 4.8, reviews: 250, description: "A modern take on a timeless classic. The Wayfarer's iconic shape is updated with a sleeker profile and lightweight materials.", reviewsList: [] },
@@ -18,74 +17,73 @@ const mockProducts: Product[] = [
   { id: "10", name: "Clip-On Versatility", brandId: 'persol', price: 2500, category: "Clip 2 in 1", gender: 'Unisex', image: "https://placehold.co/600x400.png", colors: ["Black", "Silver"], tags: ["Versatile", "Convenient"], rating: 4.7, reviews: 75, description: "The ultimate in convenience. Switch from eyeglasses to sunglasses in a snap with these stylish clip-on frames.", reviewsList: [] }
 ];
 
+
 interface ProductContextType {
   products: Product[];
   getProductById: (productId: string) => Product | undefined;
-  addProduct: (product: Product) => { success: boolean, message: string };
-  updateProduct: (productId: string, updatedProduct: Partial<Product>) => void;
-  deleteProduct: (productId: string) => void;
-  addReview: (productId: string, review: Omit<Review, 'id' | 'date'>) => void;
+  addProduct: (product: Omit<Product, 'id' | 'rating' | 'reviews' | 'reviewsList'> & { id: string }) => Promise<{ success: boolean; message: string }>;
+  updateProduct: (productId: string, updatedProduct: Partial<Product>) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
+  addReview: (productId: string, review: Omit<Review, 'id' | 'date'>) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    try {
-      const storedProducts = localStorage.getItem('products');
-      if (storedProducts) {
-        setProducts(JSON.parse(storedProducts));
-      } else {
-        setProducts(mockProducts);
-      }
-    } catch (error) {
-      console.error("Failed to parse products from localStorage", error);
-      setProducts(mockProducts);
+  const fetchProducts = useCallback(async () => {
+    // In a real app with server actions, you'd fetch from the server.
+    // For now, we use localStorage as a stand-in for a database.
+     try {
+        const stored = localStorage.getItem('products');
+        if (stored) {
+            setProducts(JSON.parse(stored));
+        } else {
+            localStorage.setItem('products', JSON.stringify(mockProducts));
+        }
+    } catch(e) {
+        console.error("Failed to access localStorage for products", e);
+    } finally {
+        setLoading(false);
     }
-    setIsInitialLoad(false);
   }, []);
 
   useEffect(() => {
-    if (!isInitialLoad) {
-      try {
-        localStorage.setItem('products', JSON.stringify(products));
-      } catch (error) {
-        console.error("Failed to save products to localStorage", error);
-      }
-    }
-  }, [products, isInitialLoad]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getProductById = (productId: string) => {
     return products.find(p => p.id === productId);
   };
 
-  const addProduct = (product: Product): { success: boolean, message: string } => {
+  const addProduct = async (product: Omit<Product, 'id' | 'rating' | 'reviews' | 'reviewsList'> & { id: string }) => {
     const existingProduct = products.find(p => p.id === product.id);
     if (existingProduct) {
         return { success: false, message: 'A product with this ID already exists.' };
     }
-    setProducts(prevProducts => [{ ...product, reviewsList: product.reviewsList || [] }, ...prevProducts]);
+    const newProduct = { ...product, rating: 0, reviews: 0, reviewsList: [] };
+    const newProducts = [newProduct, ...products];
+    setProducts(newProducts);
+    localStorage.setItem('products', JSON.stringify(newProducts));
     return { success: true, message: 'Product added successfully.' };
   };
 
-  const updateProduct = (productId: string, updatedProduct: Partial<Product>) => {
-    setProducts(prevProducts =>
-      prevProducts.map(p =>
-        p.id === productId ? { ...p, ...updatedProduct } : p
-      )
-    );
+  const updateProduct = async (productId: string, updatedProduct: Partial<Product>) => {
+    const newProducts = products.map(p => (p.id === productId ? { ...p, ...updatedProduct } : p));
+    setProducts(newProducts);
+    localStorage.setItem('products', JSON.stringify(newProducts));
   };
 
-  const deleteProduct = (productId: string) => {
-    setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+  const deleteProduct = async (productId: string) => {
+    const newProducts = products.filter(p => p.id !== productId);
+    setProducts(newProducts);
+    localStorage.setItem('products', JSON.stringify(newProducts));
   };
 
-  const addReview = (productId: string, review: Omit<Review, 'id' | 'date'>) => {
-    setProducts(prevProducts =>
-      prevProducts.map(p => {
+  const addReview = async (productId: string, review: Omit<Review, 'id' | 'date'>) => {
+    const newProducts = products.map(p => {
         if (p.id === productId) {
           const newReview: Review = {
             ...review,
@@ -104,8 +102,9 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           };
         }
         return p;
-      })
-    );
+      });
+    setProducts(newProducts);
+    localStorage.setItem('products', JSON.stringify(newProducts));
   };
 
   return (

@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
-import { sendAdminNewUserRegisteredNotification } from '@/services/email-service';
+// Removed email service import, should be handled server-side
 
 // Mock user data for demonstration
 const mockUsers: User[] = [
@@ -39,80 +39,62 @@ const mockUsers: User[] = [
 interface UserContextType {
   user: User | null;
   users: User[];
-  login: (email: string, password: string) => { success: boolean, isAdmin: boolean, message: string };
+  login: (email: string, password: string) => Promise<{ success: boolean, isAdmin: boolean, message: string }>;
   logout: () => void;
-  addUser: (userData: Omit<User, 'id'>) => { success: boolean, message: string };
-  updateUser: (userId: string, updatedData: Partial<User>) => { success: boolean, message: string };
-  deleteUser: (userId: string) => { success: boolean, message: string };
+  addUser: (userData: Omit<User, 'id' | 'role'>) => Promise<{ success: boolean, message: string }>;
+  updateUser: (userId: string, updatedData: Partial<User>) => Promise<{ success: boolean, message: string }>;
+  deleteUser: (userId: string) => Promise<{ success: boolean, message: string }>;
+  refreshUsers: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>(mockUsers);
   const [user, setUser] = useState<User | null>(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  
-  // Load users from localStorage or use mock data
-  useEffect(() => {
+
+  const fetchUsers = useCallback(async () => {
+    // This would be a server action in a real app.
+    // We'll use localStorage as a stand-in for a database.
     try {
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
-      } else {
-        setUsers(mockUsers);
-      }
-    } catch (error) {
-      console.error("Failed to parse users from localStorage", error);
-      setUsers(mockUsers);
-    }
-  }, []);
-
-  // Load logged-in user from session storage
-  useEffect(() => {
-     try {
-      const storedUser = sessionStorage.getItem('loggedInUser');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error("Failed to parse logged-in user from sessionStorage", error);
-    }
-    setIsInitialLoad(false);
-  }, []);
-
-  // Persist users to localStorage
-  useEffect(() => {
-    try {
-        localStorage.setItem('users', JSON.stringify(users));
-    } catch (error) {
-        console.error("Failed to save users to localStorage", error);
-    }
-  }, [users]);
-
-  // Persist logged-in user to session storage
-  useEffect(() => {
-    if (!isInitialLoad) {
-        try {
-            if (user) {
-                sessionStorage.setItem('loggedInUser', JSON.stringify(user));
-            } else {
-                sessionStorage.removeItem('loggedInUser');
-            }
-        } catch (error) {
-            console.error("Failed to save user to sessionStorage", error);
+        const stored = localStorage.getItem('users');
+        if (stored) {
+            setUsers(JSON.parse(stored));
+        } else {
+            localStorage.setItem('users', JSON.stringify(mockUsers));
         }
+    } catch(e) {
+        console.error("Failed to access localStorage for users", e);
     }
-  }, [user, isInitialLoad]);
+  }, []);
 
+  useEffect(() => {
+    fetchUsers();
+    // Check for logged-in user in session storage
+    try {
+        const storedUser = sessionStorage.getItem('loggedInUser');
+        if(storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    } catch(e) {
+        console.error("Failed to access sessionStorage for loggedInUser", e);
+    }
+    setLoading(false);
+  }, [fetchUsers]);
+  
+  const refreshUsers = () => {
+      fetchUsers();
+  }
 
-  const login = (email: string, password: string): { success: boolean, isAdmin: boolean, message: string } => {
+  const login = async (email: string, password: string) => {
     const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     
     if (foundUser && foundUser.password === password) {
       const { password: _, ...userToStore } = foundUser;
       setUser(userToStore);
+      sessionStorage.setItem('loggedInUser', JSON.stringify(userToStore));
       const isAdmin = userToStore.role === 'admin';
       return { success: true, isAdmin, message: 'Login successful' };
     }
@@ -122,10 +104,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    sessionStorage.removeItem('loggedInUser');
     router.push('/login');
   };
 
-  const addUser = (userData: Omit<User, 'id'>): { success: boolean, message: string } => {
+  const addUser = async (userData: Omit<User, 'id' | 'role'>) => {
     const existingUser = users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
     if (existingUser) {
         return { success: false, message: 'An account with this email already exists.' };
@@ -134,19 +117,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newUser: User = {
         ...userData,
         id: `USER${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        role: userData.role || 'customer'
+        role: 'customer'
     };
-    setUsers(prevUsers => [...prevUsers, newUser]);
-    
-    // Send admin notification for new user registration (if not added via dashboard)
-    if (newUser.role === 'customer') {
-        sendAdminNewUserRegisteredNotification(newUser);
-    }
-
+    const newUsers = [...users, newUser];
+    setUsers(newUsers);
+    localStorage.setItem('users', JSON.stringify(newUsers));
     return { success: true, message: 'Account created successfully.' };
   };
 
-  const updateUser = (userId: string, updatedData: Partial<User>): { success: boolean, message: string } => {
+  const updateUser = async (userId: string, updatedData: Partial<User>) => {
     let userUpdated = false;
     const updatedUsers = users.map(u => {
         if (u.id === userId) {
@@ -158,11 +137,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (userUpdated) {
         setUsers(updatedUsers);
-        // Also update the currently logged-in user's state
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
         if (user && user.id === userId) {
-             // omit password from the updated user object before setting it in state
             const { password, ...userToStore } = { ...user, ...updatedData };
             setUser(userToStore);
+            sessionStorage.setItem('loggedInUser', JSON.stringify(userToStore));
         }
         return { success: true, message: "User updated successfully." };
     }
@@ -170,7 +149,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, message: "User not found." };
   }
 
-  const deleteUser = (userId: string): { success: boolean, message: string } => {
+  const deleteUser = async (userId: string) => {
     const userToDelete = users.find(u => u.id === userId);
     if (!userToDelete) {
         return { success: false, message: "User not found." };
@@ -180,12 +159,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: "Cannot delete the only admin."}
     }
 
-    setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
+    const newUsers = users.filter(u => u.id !== userId);
+    setUsers(newUsers);
+    localStorage.setItem('users', JSON.stringify(newUsers));
     return { success: true, message: "User deleted successfully." };
   }
 
+  if(loading) return <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser, deleteUser, refreshUsers }}>{null}</UserContext.Provider>
+
+
   return (
-    <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser, deleteUser }}>
+    <UserContext.Provider value={{ user, users, login, logout, addUser, updateUser, deleteUser, refreshUsers }}>
       {children}
     </UserContext.Provider>
   );

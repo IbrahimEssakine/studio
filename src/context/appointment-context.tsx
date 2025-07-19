@@ -1,11 +1,11 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Appointment } from '@/lib/types';
-import { sendNewAppointmentEmail, sendAppointmentStatusUpdateEmail, sendAdminNewAppointmentNotification } from '@/services/email-service';
+// Removed email service imports as they are handled server-side now
 
-// Mock data
+// Actions will be server-side, so we don't need mock data here.
 const mockAppointments: Appointment[] = [
     { id: "APT001", name: "Emily Brown", email: "emily@example.com", phone: "111-222-3333", date: new Date("2024-11-05"), time: "10:00 AM", status: "Confirmed" },
     { id: "APT002", name: "Michael Clark", email: "customer@example.com", phone: "444-555-6666", date: new Date("2024-11-06"), time: "02:30 PM", status: "Pending" },
@@ -14,77 +14,72 @@ const mockAppointments: Appointment[] = [
 
 interface AppointmentContextType {
   appointments: Appointment[];
-  addAppointment: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
-  updateAppointment: (appointmentId: string, updatedAppointment: Partial<Appointment>) => void;
-  deleteAppointment: (appointmentId: string) => void;
+  addAppointment: (appointment: Omit<Appointment, 'id' | 'status'>) => Promise<void>;
+  updateAppointment: (appointmentId: string, updatedAppointment: Partial<Appointment>) => Promise<void>;
+  deleteAppointment: (appointmentId: string) => Promise<void>;
+  refreshAppointments: () => void;
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined);
 
 export const AppointmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    try {
-      const storedAppointments = localStorage.getItem('appointments');
-      if (storedAppointments) {
-        // Dates need to be revived from strings
-        const parsed = JSON.parse(storedAppointments).map((apt: any) => ({ ...apt, date: new Date(apt.date) }));
-        setAppointments(parsed);
+  const fetchAppointments = useCallback(async () => {
+    // In a real app with server actions, you'd fetch from the server
+    // For now, we continue to use mock data loaded from localStorage
+     try {
+      const stored = localStorage.getItem('appointments');
+      if (stored) {
+        setAppointments(JSON.parse(stored).map((a: any) => ({...a, date: new Date(a.date) })));
       } else {
-        setAppointments(mockAppointments);
+        localStorage.setItem('appointments', JSON.stringify(mockAppointments));
       }
     } catch (error) {
-      console.error("Failed to parse appointments from localStorage", error);
-      setAppointments(mockAppointments);
+      console.error("Failed to access localStorage for appointments", error);
+      // Keep mock data as fallback
+    } finally {
+        setLoading(false);
     }
-    setIsInitialLoad(false);
   }, []);
 
   useEffect(() => {
-    if (!isInitialLoad) {
-      try {
-        localStorage.setItem('appointments', JSON.stringify(appointments));
-      } catch (error) {
-        console.error("Failed to save appointments to localStorage", error);
-      }
-    }
-  }, [appointments, isInitialLoad]);
+    fetchAppointments();
+  }, [fetchAppointments]);
 
-  const addAppointment = (appointment: Omit<Appointment, 'id' | 'status'>) => {
+  const refreshAppointments = () => {
+      fetchAppointments();
+  }
+
+  const addAppointment = async (appointment: Omit<Appointment, 'id' | 'status'>) => {
+    // This would be a server action in a real app
     const newAppointment: Appointment = {
       ...appointment,
       id: `APT${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
       status: "Pending",
     };
-    setAppointments(prevAppointments => [newAppointment, ...prevAppointments]);
-    // Send emails
-    sendNewAppointmentEmail(newAppointment);
-    sendAdminNewAppointmentNotification(newAppointment);
+    const newAppointments = [newAppointment, ...appointments];
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
-  const updateAppointment = (appointmentId: string, updatedAppointment: Partial<Appointment>) => {
-    const originalAppointment = appointments.find(a => a.id === appointmentId);
-
-    setAppointments(prevAppointments =>
-      prevAppointments.map(apt =>
+  const updateAppointment = async (appointmentId: string, updatedAppointment: Partial<Appointment>) => {
+    const newAppointments = appointments.map(apt =>
         apt.id === appointmentId ? { ...apt, ...updatedAppointment } : apt
-      )
     );
-    
-    if (originalAppointment && updatedAppointment.status && originalAppointment.status !== updatedAppointment.status) {
-        const finalAppointment = { ...originalAppointment, ...updatedAppointment };
-        sendAppointmentStatusUpdateEmail(finalAppointment);
-    }
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
-  const deleteAppointment = (appointmentId: string) => {
-    setAppointments(prevAppointments => prevAppointments.filter(apt => apt.id !== appointmentId));
+  const deleteAppointment = async (appointmentId: string) => {
+    const newAppointments = appointments.filter(apt => apt.id !== appointmentId);
+    setAppointments(newAppointments);
+    localStorage.setItem('appointments', JSON.stringify(newAppointments));
   };
 
   return (
-    <AppointmentContext.Provider value={{ appointments, addAppointment, updateAppointment, deleteAppointment }}>
+    <AppointmentContext.Provider value={{ appointments, addAppointment, updateAppointment, deleteAppointment, refreshAppointments }}>
       {children}
     </AppointmentContext.Provider>
   );
